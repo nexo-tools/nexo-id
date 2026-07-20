@@ -56,7 +56,7 @@ SPEC: [SPEC-sso.md](../SPEC-sso.md) (numbered ACs). Stack decided by the 2.1 spi
 - [x] 2.2 **Provider setup** — install Passport 13 + bridge; publish/run migrations; `passport:keys` (gitignored); register the provider, OIDC scopes/claims (openid/profile/email → sub/email/email_verified/name); CI adjustments. Boots; discovery + JWKS reachable.
 - [x] 2.3 **Client registration** — artisan command to create/list first-party clients; exact redirect-URI validation; seed a demo client (AC-CLIENT-1/2).
 - [x] 2.4 **Authorization + PKCE + silent SSO** — authorize endpoint: code + PKCE, consent-free first-party, verified-email gate, login redirect (AC-AUTH-1..5, AC-CLIENT-2).
-- [ ] 2.5 **Token + OIDC** — token endpoint (code→tokens, PKCE verify, single-use); id_token/userinfo/discovery/JWKS; scope→claim gating (AC-TOKEN-*, AC-OIDC-*, AC-SCOPE-1).
+- [x] 2.5 **Token + OIDC** — token endpoint (code→tokens, PKCE verify, single-use); id_token/userinfo/discovery/JWKS; scope→claim gating (AC-TOKEN-*, AC-OIDC-*, AC-SCOPE-1).
 - [ ] 2.6 **Central logout** — logout ends the Nexo ID session; silent authorize then requires re-login (AC-LOGOUT-1).
 - [ ] 2.7 **Reference client + guide** — a small client app on a distinct origin completes signup→authorize→token→userinfo end-to-end; integration guide for tool developers.
 - [ ] 2.8 **Build-gate prep** — `docs/ARCHITECTURE.md`; AC↔test sweep; negative-test audit; `audit-open-source` (keys/secrets never tracked).
