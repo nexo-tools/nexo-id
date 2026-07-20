@@ -28,7 +28,7 @@
 SPEC: [SPEC.md](../SPEC.md) (numbered ACs). Tasks (derived from the SPEC's ACs; one commit per task, `"1,N description"`, CI green before next):
 
 - [x] 1.1 **Spike** — validate the OAuth2/OIDC server library (Laravel Passport first candidate) against Hostinger shared constraints (`proc_open`/`exec` disabled, LiteSpeed) and pin Laravel + auth-scaffold versions; reconcile SPEC + ADR-003 with findings. Throwaway code only; deliverable is a decision note in `docs/adr/` or the SPEC reconciliation log.
-- [ ] 1.2 **Scaffold** — Laravel (pinned) + Sail (mysql, mailpit) + Pest + Pint + Larastan L6 + CI mirroring nexo-agenda (Pint, Larastan, translations `--check`, build, Pest) + dependency audit step. Boots and `curl` returns 200.
+- [x] 1.2 **Scaffold** — Laravel (pinned) + Sail (mysql, mailpit) + Pest + Pint + Larastan L6 + CI mirroring nexo-agenda (Pint, Larastan, translations `--check`, build, Pest) + dependency audit step. Boots and `curl` returns 200.
 - [ ] 1.3 **Nexo conventions** — `config/nexo.php`; `SecurityHeaders` middleware + CSP + `SecurityHeadersTest` (AC-SEC-1/2); `SetLocale` middleware + i18n generator (en/es/pt) + guardian test + CI `--check` (AC-I18N-1/2); brand assets + `NEXO_ATTRIBUTION_*` env + footer; base layout.
 - [ ] 1.4 **Registration** — user model (uuid, case-insensitive email), register flow, password policy, hashing, per-IP throttle (AC-REG-1..5).
 - [ ] 1.5 **Email verification** — signed expiring link, `verified` gating, rate-limited resend (AC-VERIFY-1..4).
