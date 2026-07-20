@@ -7,6 +7,9 @@ use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\PasswordController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SessionController;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'home')->name('home');
@@ -43,8 +46,10 @@ Route::middleware('auth')->group(function () {
         ->name('verification.send');
 
     Route::middleware('verified')->group(function () {
-        // Profile lives here (auth + verified). Replaced by the real profile
-        // controller in task 1.8; a stub for now so the verified gate is testable.
-        Route::view('profile', 'profile.show')->name('profile.show');
+        Route::get('profile', [ProfileController::class, 'show'])->name('profile.show');
+        Route::patch('profile', [ProfileController::class, 'update'])->name('profile.update');
+        Route::put('profile/password', [PasswordController::class, 'update'])->name('password.update');
+        Route::delete('profile/sessions/{id}', [SessionController::class, 'destroy'])->name('sessions.destroy');
+        Route::delete('profile/sessions', [SessionController::class, 'destroyOthers'])->name('sessions.destroy-others');
     });
 });
