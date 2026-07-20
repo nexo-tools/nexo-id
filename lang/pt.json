@@ -1,4 +1,5 @@
 {
+    "A new verification link has been sent to your email.": "Um novo link de verificação foi enviado para seu e-mail.",
     "Already have an account?": "Já tem uma conta?",
     "Confirm password": "Confirmar senha",
     "Create account": "Criar conta",
@@ -10,7 +11,9 @@
     "Made with :name": "Feito com :name",
     "One account for every Nexo tool.": "Uma conta para todas as ferramentas Nexo.",
     "Password": "Senha",
+    "Resend verification email": "Reenviar e-mail de verificação",
     "Sign in": "Entrar",
     "Verify your email": "Verifique seu e-mail",
-    "We sent a verification link to your email address. Click it to activate your account.": "Enviamos um link de verificação para seu e-mail. Clique nele para ativar sua conta."
+    "We sent a verification link to your email address. Click it to activate your account.": "Enviamos um link de verificação para seu e-mail. Clique nele para ativar sua conta.",
+    "Your account": "Sua conta"
 }
