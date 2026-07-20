@@ -44,15 +44,25 @@ SPEC: [SPEC.md](../SPEC.md) (numbered ACs). Tasks (derived from the SPEC's ACs; 
 - [x] `audit-open-source` dry pass: clean — no secrets in full history, `.env` never tracked, sqlite ignored, only `env()` config references; sole note is the author email domain `alvaro@mc4pc.com` (already accepted; repo private).
 - [x] End-to-end on real MySQL via Sail: register→verify-gate, login (verified→profile, unverified→notice), reset token stored as bcrypt hash, profile flags current device.
 - [x] `docs/ARCHITECTURE.md` matches reality.
-- [ ] Owner sign-off: ____________
+- [x] Owner sign-off: **Alvaro, 2026-07-20** (green light to proceed to Phase 2).
 
 ## Phase 2 — SSO provider + production deploy
 
 **Objective:** the OAuth 2.0 + PKCE / OIDC-style flow of ADR-003 live at `nexoid.alvarocdev.com`.
 
-Key work: SPEC for the provider layer (client registration, authorize/token/userinfo endpoints, silent SSO, central logout, consent-free first-party clients); a demo/reference client proving the flow end-to-end from a different domain; integration guide for tool developers; deploy via `deploy-laravel-hostinger` playbook; production baseline per standards — verified backups (restore tested once), uptime monitoring, cron, SMTP.
+SPEC: [SPEC-sso.md](../SPEC-sso.md) (numbered ACs). Stack decided by the 2.1 spike: Passport 13 + `jeremy379/laravel-openid-connect` ([ADR-008](adr/ADR-008-oidc-bridge-correction.md)). Tasks (one commit per task, `"2,N description"`, CI green before next):
 
-**Gate 2:** full flow exercised from an external domain (silent SSO included); token/PKCE negative tests; deployed and verified in production (HTTP + real flow); backups restored once for real; owner sign-off.
+- [x] 2.1 **Spike** — validate the OIDC bridge against Passport 13 / Laravel 13. Finding: ADR-007's `ronvanderheijden/openid-connect` is incompatible (oauth2-server 8 vs 9); `jeremy379/laravel-openid-connect` 3.3 resolves clean. Recorded in ADR-008 + SPEC-sso reconciliation.
+- [ ] 2.2 **Provider setup** — install Passport 13 + bridge; publish/run migrations; `passport:keys` (gitignored); register the provider, OIDC scopes/claims (openid/profile/email → sub/email/email_verified/name); CI adjustments. Boots; discovery + JWKS reachable.
+- [ ] 2.3 **Client registration** — artisan command to create/list first-party clients; exact redirect-URI validation; seed a demo client (AC-CLIENT-1/2).
+- [ ] 2.4 **Authorization + PKCE + silent SSO** — authorize endpoint: code + PKCE, consent-free first-party, verified-email gate, login redirect (AC-AUTH-1..5, AC-CLIENT-2).
+- [ ] 2.5 **Token + OIDC** — token endpoint (code→tokens, PKCE verify, single-use); id_token/userinfo/discovery/JWKS; scope→claim gating (AC-TOKEN-*, AC-OIDC-*, AC-SCOPE-1).
+- [ ] 2.6 **Central logout** — logout ends the Nexo ID session; silent authorize then requires re-login (AC-LOGOUT-1).
+- [ ] 2.7 **Reference client + guide** — a small client app on a distinct origin completes signup→authorize→token→userinfo end-to-end; integration guide for tool developers.
+- [ ] 2.8 **Build-gate prep** — `docs/ARCHITECTURE.md`; AC↔test sweep; negative-test audit; `audit-open-source` (keys/secrets never tracked).
+- [ ] 2.9 **[OWNER-GATED] Deploy** — `deploy-laravel-hostinger` to `nexoid.alvarocdev.com`; Passport keys on server; production SMTP; cron; verified backups (restore tested once); uptime monitoring; real end-to-end in prod. **Needs Alvaro's infrastructure/credentials.**
+
+**Gate 2:** build ACs green with name-traced tests (2.2–2.8); full flow exercised from an external origin incl. silent SSO; token/PKCE negative tests; **then** deployed and verified in production (HTTP + real flow); backups restored once for real; owner sign-off.
 
 ## Phase 3 — First client: Nexo Short
 

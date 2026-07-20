@@ -1,7 +1,9 @@
 # ADR-007 — Phase 2 OAuth/OIDC server: Laravel Passport + openid-connect bridge
 
 - **Date:** 2026-07-20
-- **Status:** Proposed (from the task 1.1 spike; owner sign-off at Gate 1)
+- **Status:** Accepted, except the specific bridge package.
+
+> **Superseded in part by [ADR-008](ADR-008-oidc-bridge-correction.md) (2026-07-20):** the Passport-based approach stands, but the named bridge `ronvanderheijden/openid-connect` proved incompatible with Passport 13 (oauth2-server 8 vs 9). The bridge is now `jeremy379/laravel-openid-connect`. Read this ADR for *why Passport*; read ADR-008 for *which bridge*.
 
 ## Context
 
