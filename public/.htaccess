@@ -1,3 +1,11 @@
+# LiteSpeed's "Force HTTPS" injects a CSP that replaces the middleware's. Re-assert
+# the strict policy here so it wins. MUST match App\Http\Middleware\SecurityHeaders
+# exactly — SecurityHeadersHtaccessSyncTest fails on drift.
+<IfModule mod_headers.c>
+    Header always unset Content-Security-Policy
+    Header always set Content-Security-Policy "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; img-src 'self' data:; font-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'"
+</IfModule>
+
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes
