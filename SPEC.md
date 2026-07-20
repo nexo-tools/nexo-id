@@ -74,4 +74,4 @@ Sessions use Laravel's **database** session driver (`sessions` table: `id`, `use
 
 ## Reconciliation log
 <!-- Deviations from this SPEC discovered during implementation get a dated note here (planning-by-stages rule 8), never silent divergence. -->
-- _(none yet)_
+- **2026-07-20 (task 1.1 spike)** — Pinned Laravel 13.x + Passport 13.7.5 (PKCE-native) + `ronvanderheijden/openid-connect` bridge for Phase 2; recorded in [ADR-007](docs/adr/ADR-007-oauth-oidc-library.md). Consequences for Phase 1: (a) **Passport is not a Phase 1 dependency** — the standalone core ships without it; (b) auth controllers/requests/views are **hand-written following the nexo-agenda pattern** (vendored Breeze-style) instead of adding a starter-kit dependency, avoiding starter-kit version risk and matching the siblings. No AC changes.
