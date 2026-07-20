@@ -25,7 +25,17 @@
 
 **Objective:** Nexo ID as a working standalone auth app (no SSO yet), built SPEC-first.
 
-Key work: `SPEC.md` with numbered ACs (registration, login, logout, recovery, email verification, sessions with revocation, profile; the SCOPE security minimums as ACs); **task 1.1 is the spike** — validate the OAuth2/OIDC server library (Laravel Passport first candidate) against Hostinger shared constraints (`proc_open`/`exec` disabled, LiteSpeed) and reconcile SPEC + ADR-003 with findings; project scaffolding (Laravel + Sail, Pest/Pint/Larastan, CI per nexo-agenda reference); i18n generator, brand assets, attribution env, SecurityHeaders + CSP sync test (canonical pieces from CATALOG.md).
+SPEC: [SPEC.md](../SPEC.md) (numbered ACs). Tasks (derived from the SPEC's ACs; one commit per task, `"1,N description"`, CI green before next):
+
+- [ ] 1.1 **Spike** — validate the OAuth2/OIDC server library (Laravel Passport first candidate) against Hostinger shared constraints (`proc_open`/`exec` disabled, LiteSpeed) and pin Laravel + auth-scaffold versions; reconcile SPEC + ADR-003 with findings. Throwaway code only; deliverable is a decision note in `docs/adr/` or the SPEC reconciliation log.
+- [ ] 1.2 **Scaffold** — Laravel (pinned) + Sail (mysql, mailpit) + Pest + Pint + Larastan L6 + CI mirroring nexo-agenda (Pint, Larastan, translations `--check`, build, Pest) + dependency audit step. Boots and `curl` returns 200.
+- [ ] 1.3 **Nexo conventions** — `config/nexo.php`; `SecurityHeaders` middleware + CSP + `SecurityHeadersTest` (AC-SEC-1/2); `SetLocale` middleware + i18n generator (en/es/pt) + guardian test + CI `--check` (AC-I18N-1/2); brand assets + `NEXO_ATTRIBUTION_*` env + footer; base layout.
+- [ ] 1.4 **Registration** — user model (uuid, case-insensitive email), register flow, password policy, hashing, per-IP throttle (AC-REG-1..5).
+- [ ] 1.5 **Email verification** — signed expiring link, `verified` gating, rate-limited resend (AC-VERIFY-1..4).
+- [ ] 1.6 **Login / logout** — enumeration-safe errors, email+IP throttle/lockout, session regeneration, cookie flags (AC-LOGIN-1..6).
+- [ ] 1.7 **Password recovery** — hashed single-use short-expiry tokens, enumeration-safe request, rate limiting, change-notification email + other-session invalidation (AC-PWD-1..6).
+- [ ] 1.8 **Profile & sessions** — display-name update, current-password-gated change, active-session list + per-session and bulk revoke via DB session driver (AC-PROFILE-1/2, AC-SESS-1..3).
+- [ ] 1.9 **Gate prep** — `docs/ARCHITECTURE.md`; AC↔test grep sweep; deliberate-violation checks; `audit-open-source` dry pass; branding footer.
 
 **Gate 1:** all ACs green with name-traced tests; `grep` AC↔test pass; deliberate-violation checks (rate limit actually blocks, expired/reused recovery token rejected); security audit exercised (not theoretical); ARCHITECTURE matches reality; owner sign-off.
 
