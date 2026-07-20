@@ -1,6 +1,6 @@
 # ARCHITECTURE — Nexo ID
 
-> What exists and where. Updated at each gate ("ARCHITECTURE matches reality"). Reflects the end of Phase 1 (standalone identity core; no SSO provider yet — that is Phase 2).
+> What exists and where. Updated at each gate ("ARCHITECTURE matches reality"). Reflects the end of Phase 2 build (SSO provider implemented and tested; production deploy is the owner-gated task 2.9, not yet done).
 
 ## Stack
 
@@ -35,6 +35,18 @@ Shared: `App\Actions\ChangeUserPassword` (sets password, sends `PasswordChanged`
 
 Base language English (source strings are the keys). `scripts/generate-translations.mjs` extracts `__()` literals and builds `lang/{es,pt}.json` from `scripts/translations/{es,pt}.json`; a guardian Pest test + CI `--check` fail on drift. Framework messages (validation, auth) resolve from vendor in English; es/pt of those are backlog (see SPEC reconciliation).
 
+## SSO provider (Phase 2)
+
+Laravel Passport 13 + `jeremy379/laravel-openid-connect` ([ADR-008](adr/ADR-008-oidc-bridge-correction.md)). Passport auto-discovery is disabled (`composer.json` `dont-discover`) so the bridge's `PassportServiceProvider` (which extends Passport's and injects the `IdTokenResponse`) is the sole provider — that is what makes the `id_token` appear.
+
+- **Endpoints:** `GET /oauth/authorize` (code + PKCE), `POST /oauth/token`, `GET /oauth/userinfo`, `GET /.well-known/openid-configuration`, `GET /oauth/jwks`.
+- **Keys:** RSA keypair in `storage/oauth-*.key` (gitignored; generated per environment via `passport:keys`).
+- **Clients:** `App\Models\OauthClient` overrides `skipsAuthorization()` → first-party (owner-less) clients are consent-free (silent SSO). Registered via the `nexo:sso-client` artisan command (public/PKCE, exact redirect URIs).
+- **Verified gate:** `config/passport.php` registers `RequireVerifiedForAuthorize` on Passport routes; it redirects unverified users away from `/oauth/authorize` only (pass-through elsewhere).
+- **Claims:** `App\Entities\IdentityEntity` maps scopes→claims (`profile`→name, `email`→email/email_verified); the bridge filters by granted scope. Scopes declared via `Passport::tokensCan(config('openid.passport.tokens_can'))` in `AuthServiceProvider`.
+- **User:** `HasApiTokens` + `OAuthenticatable`; the `api` guard (driver `passport`) protects userinfo.
+- **Integration guide:** [INTEGRATION.md](INTEGRATION.md).
+
 ## Not here yet (later phases)
 
-OAuth/OIDC provider (Passport + openid-connect bridge, Phase 2 — [ADR-007](adr/ADR-007-oauth-oidc-library.md)); deploy to `nexoid.alvarocdev.com`; 2FA; "your tools" page.
+Production deploy to `nexoid.alvarocdev.com` (owner-gated task 2.9); third-party consent UI; back-channel logout; 2FA; "your tools" page.

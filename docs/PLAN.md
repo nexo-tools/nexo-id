@@ -59,10 +59,16 @@ SPEC: [SPEC-sso.md](../SPEC-sso.md) (numbered ACs). Stack decided by the 2.1 spi
 - [x] 2.5 **Token + OIDC** — token endpoint (code→tokens, PKCE verify, single-use); id_token/userinfo/discovery/JWKS; scope→claim gating (AC-TOKEN-*, AC-OIDC-*, AC-SCOPE-1).
 - [x] 2.6 **Central logout** — logout ends the Nexo ID session; silent authorize then requires re-login (AC-LOGOUT-1).
 - [x] 2.7 **Reference client + guide** — a small client app on a distinct origin completes signup→authorize→token→userinfo end-to-end; integration guide for tool developers.
-- [ ] 2.8 **Build-gate prep** — `docs/ARCHITECTURE.md`; AC↔test sweep; negative-test audit; `audit-open-source` (keys/secrets never tracked).
+- [x] 2.8 **Build-gate prep** — `docs/ARCHITECTURE.md` updated; AC↔test sweep 16/16; negative-test audit; `audit-open-source` (keys/secrets never tracked).
 - [ ] 2.9 **[OWNER-GATED] Deploy** — `deploy-laravel-hostinger` to `nexoid.alvarocdev.com`; Passport keys on server; production SMTP; cron; verified backups (restore tested once); uptime monitoring; real end-to-end in prod. **Needs Alvaro's infrastructure/credentials.**
 
-**Gate 2:** build ACs green with name-traced tests (2.2–2.8); full flow exercised from an external origin incl. silent SSO; token/PKCE negative tests; **then** deployed and verified in production (HTTP + real flow); backups restored once for real; owner sign-off.
+**Gate 2 (owner sign-off required):**
+- [x] Build ACs green with name-traced tests (2.2–2.8): all 16 SPEC-sso ACs have ≥1 test, `grep` sweep is 1:1. Pest full suite 66 passed, 1 skipped (node-only i18n guardian).
+- [x] Full flow exercised from an external origin incl. silent SSO (ReferenceFlowTest: signup→verify→authorize→token→userinfo with a client on `tool.example`); token/PKCE negative tests (wrong verifier, reused code, unknown client, non-exact redirect).
+- [x] Pint + Larastan L6 + `composer audit` + translations `--check` + build all green (CI-equivalent 2026-07-20).
+- [x] `audit-open-source`: clean — Passport RSA keys and `.env` never tracked (gitignored), no private keys / real APP_KEY in history.
+- [ ] **Deploy (task 2.9):** deployed and verified in production (HTTP + real flow); backups restored once for real. _Owner-gated._
+- [ ] Owner sign-off: ____________
 
 ## Phase 3 — First client: Nexo Short
 
