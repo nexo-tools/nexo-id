@@ -50,4 +50,5 @@ jobs:
         run: |
           cp .env.example .env
           php artisan key:generate
+          php artisan passport:keys --no-interaction
           vendor/bin/pest

@@ -53,7 +53,7 @@ SPEC: [SPEC.md](../SPEC.md) (numbered ACs). Tasks (derived from the SPEC's ACs; 
 SPEC: [SPEC-sso.md](../SPEC-sso.md) (numbered ACs). Stack decided by the 2.1 spike: Passport 13 + `jeremy379/laravel-openid-connect` ([ADR-008](adr/ADR-008-oidc-bridge-correction.md)). Tasks (one commit per task, `"2,N description"`, CI green before next):
 
 - [x] 2.1 **Spike** — validate the OIDC bridge against Passport 13 / Laravel 13. Finding: ADR-007's `ronvanderheijden/openid-connect` is incompatible (oauth2-server 8 vs 9); `jeremy379/laravel-openid-connect` 3.3 resolves clean. Recorded in ADR-008 + SPEC-sso reconciliation.
-- [ ] 2.2 **Provider setup** — install Passport 13 + bridge; publish/run migrations; `passport:keys` (gitignored); register the provider, OIDC scopes/claims (openid/profile/email → sub/email/email_verified/name); CI adjustments. Boots; discovery + JWKS reachable.
+- [x] 2.2 **Provider setup** — install Passport 13 + bridge; publish/run migrations; `passport:keys` (gitignored); register the provider, OIDC scopes/claims (openid/profile/email → sub/email/email_verified/name); CI adjustments. Boots; discovery + JWKS reachable.
 - [ ] 2.3 **Client registration** — artisan command to create/list first-party clients; exact redirect-URI validation; seed a demo client (AC-CLIENT-1/2).
 - [ ] 2.4 **Authorization + PKCE + silent SSO** — authorize endpoint: code + PKCE, consent-free first-party, verified-email gate, login redirect (AC-AUTH-1..5, AC-CLIENT-2).
 - [ ] 2.5 **Token + OIDC** — token endpoint (code→tokens, PKCE verify, single-use); id_token/userinfo/discovery/JWKS; scope→claim gating (AC-TOKEN-*, AC-OIDC-*, AC-SCOPE-1).
