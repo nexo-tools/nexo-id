@@ -35,9 +35,16 @@ SPEC: [SPEC.md](../SPEC.md) (numbered ACs). Tasks (derived from the SPEC's ACs; 
 - [x] 1.6 **Login / logout** — enumeration-safe errors, email+IP throttle/lockout, session regeneration, cookie flags (AC-LOGIN-1..6).
 - [x] 1.7 **Password recovery** — hashed single-use short-expiry tokens, enumeration-safe request, rate limiting, change-notification email + other-session invalidation (AC-PWD-1..6).
 - [x] 1.8 **Profile & sessions** — display-name update, current-password-gated change, active-session list + per-session and bulk revoke via DB session driver (AC-PROFILE-1/2, AC-SESS-1..3).
-- [ ] 1.9 **Gate prep** — `docs/ARCHITECTURE.md`; AC↔test grep sweep; deliberate-violation checks; `audit-open-source` dry pass; branding footer.
+- [x] 1.9 **Gate prep** — `docs/ARCHITECTURE.md`; AC↔test grep sweep; deliberate-violation checks; `audit-open-source` dry pass; branding footer.
 
-**Gate 1:** all ACs green with name-traced tests; `grep` AC↔test pass; deliberate-violation checks (rate limit actually blocks, expired/reused recovery token rejected); security audit exercised (not theoretical); ARCHITECTURE matches reality; owner sign-off.
+**Gate 1 (owner sign-off required):**
+- [x] All 30 ACs green with name-traced tests; `grep` AC↔test sweep is 1:1 (SPEC ids ↔ test names). Pest: 47 passed, 1 skipped (the i18n guardian skips only where node is absent; CI runs it + the standalone `--check`).
+- [x] Deliberate-violation checks exercised: registration/login/verify/reset rate limits actually return 429/lockout; reused reset token rejected (AC-PWD-3); expired + tampered verification link 403 (AC-VERIFY-2); wrong current password rejected (AC-PROFILE-2); cross-user session revoke blocked (AC-SESS-2).
+- [x] Pint + Larastan (level 6) + `composer audit` + translations `--check` + build all green (CI-equivalent run 2026-07-20).
+- [x] `audit-open-source` dry pass: clean — no secrets in full history, `.env` never tracked, sqlite ignored, only `env()` config references; sole note is the author email domain `alvaro@mc4pc.com` (already accepted; repo private).
+- [x] End-to-end on real MySQL via Sail: register→verify-gate, login (verified→profile, unverified→notice), reset token stored as bcrypt hash, profile flags current device.
+- [x] `docs/ARCHITECTURE.md` matches reality.
+- [ ] Owner sign-off: ____________
 
 ## Phase 2 — SSO provider + production deploy
 

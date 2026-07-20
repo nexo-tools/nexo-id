@@ -84,3 +84,4 @@ Note: Nexo Short lives on **its own domain (nxo.li)**, outside alvarocdev.com â€
 - Email change flow with re-verification of both addresses.
 - Admin UI for client/instance management.
 - Audit log of account events (logins, password changes) visible to the user.
+- Translated es/pt framework messages (`validation.*` / `auth.*`) â€” English-only in Phase 1 (UI strings are translated; framework messages are laravel-lang territory). Low effort, deferred to keep Phase 1 focused.
