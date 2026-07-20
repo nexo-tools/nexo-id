@@ -32,7 +32,7 @@ SPEC: [SPEC.md](../SPEC.md) (numbered ACs). Tasks (derived from the SPEC's ACs; 
 - [x] 1.3 **Nexo conventions** — `config/nexo.php`; `SecurityHeaders` middleware + CSP + `SecurityHeadersTest` (AC-SEC-1/2); `SetLocale` middleware + i18n generator (en/es/pt) + guardian test + CI `--check` (AC-I18N-1/2); brand assets + `NEXO_ATTRIBUTION_*` env + footer; base layout.
 - [x] 1.4 **Registration** — user model (uuid, case-insensitive email), register flow, password policy, hashing, per-IP throttle (AC-REG-1..5).
 - [x] 1.5 **Email verification** — signed expiring link, `verified` gating, rate-limited resend (AC-VERIFY-1..4).
-- [ ] 1.6 **Login / logout** — enumeration-safe errors, email+IP throttle/lockout, session regeneration, cookie flags (AC-LOGIN-1..6).
+- [x] 1.6 **Login / logout** — enumeration-safe errors, email+IP throttle/lockout, session regeneration, cookie flags (AC-LOGIN-1..6).
 - [ ] 1.7 **Password recovery** — hashed single-use short-expiry tokens, enumeration-safe request, rate limiting, change-notification email + other-session invalidation (AC-PWD-1..6).
 - [ ] 1.8 **Profile & sessions** — display-name update, current-password-gated change, active-session list + per-session and bulk revoke via DB session driver (AC-PROFILE-1/2, AC-SESS-1..3).
 - [ ] 1.9 **Gate prep** — `docs/ARCHITECTURE.md`; AC↔test grep sweep; deliberate-violation checks; `audit-open-source` dry pass; branding footer.

@@ -21,4 +21,11 @@
             {{ __('Resend verification email') }}
         </button>
     </form>
+
+    <form method="POST" action="{{ route('logout') }}" class="mt-3">
+        @csrf
+        <button type="submit" class="w-full text-sm text-neutral-500 hover:text-neutral-300">
+            {{ __('Sign out') }}
+        </button>
+    </form>
 @endsection
