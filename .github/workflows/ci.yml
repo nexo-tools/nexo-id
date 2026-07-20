@@ -40,6 +40,9 @@ jobs:
 
       - run: npm ci
 
+      - name: Translations (check in sync)
+        run: node scripts/generate-translations.mjs --check
+
       - name: Build assets
         run: npm run build
 
