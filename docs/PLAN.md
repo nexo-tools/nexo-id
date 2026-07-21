@@ -60,15 +60,15 @@ SPEC: [SPEC-sso.md](../SPEC-sso.md) (numbered ACs). Stack decided by the 2.1 spi
 - [x] 2.6 **Central logout** — logout ends the Nexo ID session; silent authorize then requires re-login (AC-LOGOUT-1).
 - [x] 2.7 **Reference client + guide** — a small client app on a distinct origin completes signup→authorize→token→userinfo end-to-end; integration guide for tool developers.
 - [x] 2.8 **Build-gate prep** — `docs/ARCHITECTURE.md` updated; AC↔test sweep 16/16; negative-test audit; `audit-open-source` (keys/secrets never tracked).
-- [~] 2.9 **[OWNER-GATED] Deploy** — **deployed 2026-07-20** to `nexoid.alvarocdev.com` (with Alvaro): code via deploy key, `.env`, `passport:keys` on server, `migrate --force`, storage symlink, prod caches, subdomain symlink, cron. Verified from outside: home/register/`/up` 200, discovery + JWKS 200 (https issuer), strict CSP beat LiteSpeed, HSTS present. **Still open:** production email smoke (real SMTP), verified backups (restore once), uptime monitoring.
+- [x] 2.9 **[OWNER-GATED] Deploy** — **deployed 2026-07-20** to `nexoid.alvarocdev.com` (with Alvaro): code via deploy key, `.env`, `passport:keys` on server, `migrate --force`, storage symlink, prod caches, subdomain symlink, cron. Verified from outside: home/register/`/up` 200, discovery + JWKS 200 (https issuer), strict CSP beat LiteSpeed, HSTS present, attribution footer "powered by alvarocdev.com". Production email smoke passed (real SMTP verification mail received). **Backups + uptime monitoring deferred by owner** — to be set up across all Nexo tools together, before real users arrive (Phase 3, when Nexo Short brings the first registrations).
 
 **Gate 2 (owner sign-off required):**
 - [x] Build ACs green with name-traced tests (2.2–2.8): all 16 SPEC-sso ACs have ≥1 test, `grep` sweep is 1:1. Pest full suite 66 passed, 1 skipped (node-only i18n guardian).
 - [x] Full flow exercised from an external origin incl. silent SSO (ReferenceFlowTest: signup→verify→authorize→token→userinfo with a client on `tool.example`); token/PKCE negative tests (wrong verifier, reused code, unknown client, non-exact redirect).
 - [x] Pint + Larastan L6 + `composer audit` + translations `--check` + build all green (CI-equivalent 2026-07-20).
 - [x] `audit-open-source`: clean — Passport RSA keys and `.env` never tracked (gitignored), no private keys / real APP_KEY in history.
-- [ ] **Deploy (task 2.9):** deployed and verified in production (HTTP + real flow); backups restored once for real. _Owner-gated._
-- [ ] Owner sign-off: ____________
+- [x] **Deploy (task 2.9):** deployed and verified in production (HTTP + real OAuth flow + real SMTP verification email). Backups + uptime monitoring **deferred by owner** to a cross-tool ops pass before real users (Phase 3); tracked, not dropped.
+- [x] Owner sign-off: **Alvaro, 2026-07-20** (with backups/uptime deferred as above).
 
 ## Phase 3 — First client: Nexo Short
 

@@ -5,7 +5,7 @@
 
 ## What this project is
 
-Central identity service (SSO) for the Nexo ecosystem (Nexo Links, Nexo Agenda, Nexo Short, Nexo Events): one account, every tool. Open source, multi-instance, self-hostable, like its siblings. **Current state: Phase 1 signed off; Phase 2 SSO provider (OAuth2+PKCE/OIDC) built and tested — pending only the owner-gated production deploy (task 2.9) before Gate 2.** Start at [docs/PLAN.md](docs/PLAN.md); specs are [SPEC.md](SPEC.md) (core) + [SPEC-sso.md](SPEC-sso.md) (provider); map is [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md); tool integration is [docs/INTEGRATION.md](docs/INTEGRATION.md).
+Central identity service (SSO) for the Nexo ecosystem (Nexo Links, Nexo Agenda, Nexo Short, Nexo Events): one account, every tool. Open source, multi-instance, self-hostable, like its siblings. **Current state: Phases 1 & 2 signed off — the SSO provider (OAuth2+PKCE/OIDC) is LIVE at https://nexoid.alvarocdev.com. Next: Phase 3 (Nexo Short as first client + repo goes public).** Start at [docs/PLAN.md](docs/PLAN.md); specs are [SPEC.md](SPEC.md) (core) + [SPEC-sso.md](SPEC-sso.md) (provider); map is [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md); tool integration is [docs/INTEGRATION.md](docs/INTEGRATION.md).
 
 ## Stack
 
@@ -32,7 +32,7 @@ Note: the `composer:latest` container has no node/GD; the i18n guardian Pest tes
 
 Live at **https://nexoid.alvarocdev.com** (deployed 2026-07-20 via the `deploy-laravel-hostinger` skill; Hostinger shared + LiteSpeed). Runbook: [DEPLOYMENT.md](DEPLOYMENT.md). OIDC endpoints served (`/.well-known/openid-configuration`, `/oauth/jwks`, authorize/token/userinfo). Passport RSA keys were generated on the server (never in git). Deploy-specific internal identifiers (account, DB name, SSH host) live in `CLAUDE.local.md` (gitignored), not here — this file is public-bound.
 
-Pending to close Gate 2: production email smoke (register → real SMTP verification), verified backups (restore once), uptime monitoring on `/up`, owner sign-off.
+**Gate 2 signed off 2026-07-20.** Production email smoke passed (real SMTP verification mail received); attribution footer shows "powered by alvarocdev.com". **Deferred by owner (tracked, not dropped):** verified backups + uptime monitoring — to be set up across all Nexo tools together before real users arrive (Phase 3, when Nexo Short brings the first registrations). Standards require both for production with real users; acceptable to defer only while there are none.
 
 ## Project conventions
 

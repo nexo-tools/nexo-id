@@ -2,7 +2,7 @@
 
 One account, every Nexo tool — the open source identity service (SSO) of the Nexo ecosystem.
 
-Status: Phase 1 signed off. Phase 2 SSO provider (OAuth 2.0 + PKCE / OIDC — authorize, token, id_token, userinfo, discovery, JWKS, silent SSO, central logout) built and AC-tested; pending only the production deploy before Gate 2.
+Status: Phases 1 & 2 complete — the SSO provider (OAuth 2.0 + PKCE / OIDC: authorize, token, id_token, userinfo, discovery, JWKS, silent SSO, central logout) is **live at https://nexoid.alvarocdev.com**. Next: Phase 3 (Nexo Short as the first client; repo goes public).
 
 - Scope: [docs/SCOPE.md](docs/SCOPE.md)
 - Specs: [SPEC.md](SPEC.md) (core) · [SPEC-sso.md](SPEC-sso.md) (SSO provider)
