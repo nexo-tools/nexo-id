@@ -60,7 +60,7 @@ SPEC: [SPEC-sso.md](../SPEC-sso.md) (numbered ACs). Stack decided by the 2.1 spi
 - [x] 2.6 **Central logout** — logout ends the Nexo ID session; silent authorize then requires re-login (AC-LOGOUT-1).
 - [x] 2.7 **Reference client + guide** — a small client app on a distinct origin completes signup→authorize→token→userinfo end-to-end; integration guide for tool developers.
 - [x] 2.8 **Build-gate prep** — `docs/ARCHITECTURE.md` updated; AC↔test sweep 16/16; negative-test audit; `audit-open-source` (keys/secrets never tracked).
-- [ ] 2.9 **[OWNER-GATED] Deploy** — `deploy-laravel-hostinger` to `nexoid.alvarocdev.com`; Passport keys on server; production SMTP; cron; verified backups (restore tested once); uptime monitoring; real end-to-end in prod. **Needs Alvaro's infrastructure/credentials.**
+- [~] 2.9 **[OWNER-GATED] Deploy** — **deployed 2026-07-20** to `nexoid.alvarocdev.com` (with Alvaro): code via deploy key, `.env`, `passport:keys` on server, `migrate --force`, storage symlink, prod caches, subdomain symlink, cron. Verified from outside: home/register/`/up` 200, discovery + JWKS 200 (https issuer), strict CSP beat LiteSpeed, HSTS present. **Still open:** production email smoke (real SMTP), verified backups (restore once), uptime monitoring.
 
 **Gate 2 (owner sign-off required):**
 - [x] Build ACs green with name-traced tests (2.2–2.8): all 16 SPEC-sso ACs have ≥1 test, `grep` sweep is 1:1. Pest full suite 66 passed, 1 skipped (node-only i18n guardian).

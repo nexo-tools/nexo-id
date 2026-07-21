@@ -30,7 +30,9 @@ Note: the `composer:latest` container has no node/GD; the i18n guardian Pest tes
 
 ## Production
 
-Not deployed. Planned: `nexoid.alvarocdev.com` (decided at Gate 0), via the `deploy-laravel-hostinger` skill, in Phase 2.
+Live at **https://nexoid.alvarocdev.com** (deployed 2026-07-20 via the `deploy-laravel-hostinger` skill; Hostinger shared + LiteSpeed). Runbook: [DEPLOYMENT.md](DEPLOYMENT.md). OIDC endpoints served (`/.well-known/openid-configuration`, `/oauth/jwks`, authorize/token/userinfo). Passport RSA keys were generated on the server (never in git). Deploy-specific internal identifiers (account, DB name, SSH host) live in `CLAUDE.local.md` (gitignored), not here — this file is public-bound.
+
+Pending to close Gate 2: production email smoke (register → real SMTP verification), verified backups (restore once), uptime monitoring on `/up`, owner sign-off.
 
 ## Project conventions
 
