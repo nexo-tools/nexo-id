@@ -7,11 +7,15 @@ return [
     // by scripts/generate-translations.mjs and its guardian test.
     'locales' => ['en', 'es', 'pt'],
 
-    // Instance-configurable "powered by" attribution (multi-instance branding).
-    // Alvaro's hosted instance sets these with a UTM-tagged URL; self-hosters
-    // leave them unset (neutral default) or point to their own site.
-    'attribution_url' => env('NEXO_ATTRIBUTION_URL'),
-    'attribution_text' => env('NEXO_ATTRIBUTION_TEXT'),
+    // Instance-configurable attribution footer (multi-instance branding, per the
+    // add-branding-footer skill). Neutral product default → the repo; Alvaro's
+    // hosted instance overrides both env vars via .env, e.g.
+    //   NEXO_ATTRIBUTION_LABEL="powered by alvarocdev.com"
+    //   NEXO_ATTRIBUTION_URL="https://alvarocdev.com/?utm_source=nexo-id&utm_medium=powered-by"
+    'attribution' => [
+        'label' => env('NEXO_ATTRIBUTION_LABEL', 'made with Nexo ID'),
+        'url' => env('NEXO_ATTRIBUTION_URL', 'https://github.com/alvarocdev-git/nexo-id'),
+    ],
 
     // Password policy (see SPEC AC-REG-3). Kept in config so it is testable and
     // adjustable per instance without touching validation code.
