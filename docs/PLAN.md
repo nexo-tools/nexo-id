@@ -4,7 +4,7 @@
 >
 > Per the just-in-time rule, only the current phase is broken into tasks. Later phases list objective, key work, and gate criteria; their tasks get derived from their SPEC's acceptance criteria when the phase opens.
 
-## Phase 0 — Planning & foundations (current)
+## Phase 0 — Planning & foundations
 
 **Objective:** decisions made and recorded, scope fixed, project formalized. Zero product code.
 
@@ -70,13 +70,20 @@ SPEC: [SPEC-sso.md](../SPEC-sso.md) (numbered ACs). Stack decided by the 2.1 spi
 - [x] **Deploy (task 2.9):** deployed and verified in production (HTTP + real OAuth flow + real SMTP verification email). Backups + uptime monitoring **deferred by owner** to a cross-tool ops pass before real users (Phase 3); tracked, not dropped.
 - [x] Owner sign-off: **Alvaro, 2026-07-20** (with backups/uptime deferred as above).
 
-## Phase 3 — First client: Nexo Short
+## Phase 3 — First client: Nexo Short (current)
 
-**Objective:** Nexo Short launches SSO-only against Nexo ID (ADR-004 §5) — the integration pattern is built once here and reused.
+**Objective:** Nexo Short launches SSO-only against Nexo ID (ADR-004 §5) — the integration pattern is built once and reused.
 
-Key work: reusable Laravel client pattern (OIDC client + `NEXO_SSO_*` env contract + local-session handling + graceful degradation); Nexo Short consumes it (coordinated with that project's own plan); `audit-open-source` + repo goes public no later than this phase.
+SPEC: [SPEC-client.md](../SPEC-client.md) (numbered ACs). Opened 2026-07-21. Pattern form decided with Alvaro: **copyable template in the standards repo** (`templates/nexo-sso-client/`), not a Composer package — template ships its own Pest tests; consumers copy code + tests. Timing driver: Nexo Short is mid-plan and its Phase 5 (launch) needs both the pattern and T4.
 
-**Gate 3:** real signup→login→use flow on Nexo Short via Nexo ID from `nxo.li`; degradation verified (Nexo ID down → active sessions keep working); audit passed; owner sign-off.
+- [ ] 3.1 **[OWNER-GATED] T4 ops pass** — verified backups (automated MySQL dumps per tool + at least one tested restore) + external uptime monitoring on `/up` for all production Nexo tools (nexoid, nexolinks, nexoagenda; nexoshort when it deploys). Cross-tool, done with Alvaro (hPanel, monitor account, dump destination). Hard precondition for real users.
+- [ ] 3.2 **Client pattern template** — build `templates/nexo-sso-client/` in the standards repo per SPEC-client ACs: OIDC client (discovery, PKCE, state, id_token validation), `NEXO_SSO_*` config, `nexo_id_sub` migration stub, account linking, degradation, README, Pest tests (AC name-traced).
+- [ ] 3.3 **Prove the template against a real local Nexo ID** — template test suite green against a locally running provider instance (not only mocks); AC↔test grep sweep 1:1.
+- [ ] 3.4 **[OWNER-GATED] Nexo Short consumes it (coordinated)** — register Nexo Short's production client (`nexo:sso-client`, exact `nxo.li` redirect URIs) on the server; support that project's agent integrating the template per its own plan; never edited unilaterally from here.
+- [ ] 3.5 **Pre-public cleanups** — genericize `DEPLOYMENT.md` (real hosting layout out), decide `nexo-id.md` (drop/move), SEO-base on public pages (meta description/OG/canonical/hreflang/sitemap), author-email check.
+- [ ] 3.6 **[OWNER-GATED] Repo goes public** — full `audit-open-source` pass, then flip visibility with Alvaro.
+
+**Gate 3 (owner sign-off required):** real signup→login→use flow on Nexo Short via Nexo ID from `nxo.li`; degradation verified (Nexo ID down → active sessions keep working); T4 in place (backups restore-tested + uptime alerts live); audit passed; repo public; owner sign-off.
 
 ## Phase 4 — Integration: Nexo Agenda & Nexo Links
 
