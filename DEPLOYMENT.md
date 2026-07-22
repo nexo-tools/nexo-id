@@ -1,21 +1,21 @@
-# Deployment — Nexo ID on Hostinger shared (LiteSpeed)
+# Deployment — Nexo ID on shared hosting (LiteSpeed)
 
-Nexo ID runs on Laravel 13 + MySQL on Hostinger shared hosting, served from a subdomain via a symlink to `public/`. This is the same playbook the sibling Nexo tools use (`deploy-laravel-hostinger`), plus the OIDC specifics (Passport keys, forced HTTPS). Placeholders: `<host-ssh>` (Hostinger SSH host), `<ssh-user>` (e.g. `u123456`), `<db>`, `<db-user>`, `<db-pass>`.
+Nexo ID runs on Laravel 13 + MySQL on shared hosting (tested on Hostinger + LiteSpeed), served from a subdomain via a symlink to `public/`. This is the same playbook the sibling Nexo tools use, plus the OIDC specifics (Passport keys, forced HTTPS). Placeholders: `<nexoid-host>` (e.g. `nexoid.example.com`), `<domain>` (the hosting account's domain folder), `<host-ssh>` (panel SSH host), `<ssh-user>` (e.g. `u123456`), `<db>`, `<db-user>`, `<db-pass>`, `<mail-user>` (e.g. `nexoid@example.com`).
 
-Assumptions: SSH on port **65002** (hPanel → Advanced → SSH Access — use the exact host from that panel, not the domain's A-record). PHP 8.x + Composer over SSH; **no Node on the server** — assets are built locally/CI and uploaded.
+Assumptions: SSH on the port your panel shows (Hostinger: **65002**, hPanel → Advanced → SSH Access — use the exact host from that panel, not the domain's A-record). PHP 8.x + Composer over SSH; **no Node on the server** — assets are built locally/CI and uploaded.
 
-## One-time: hPanel
+## One-time: hosting panel
 
-1. **Subdomain** — create `nexoid.alvarocdev.com` (document root will be replaced by a symlink).
+1. **Subdomain** — create `<nexoid-host>` (document root will be replaced by a symlink).
 2. **Database** — create a MySQL database + user; note `<db>`, `<db-user>`, `<db-pass>`.
-3. **Mailbox** — `nexoid@alvarocdev.com` (SMTP `smtp.hostinger.com:465`).
-4. **Repo access** — the repo is private until Phase 3; give the server read access (a read-only deploy key or a PAT) so `git clone`/`pull` works, or upload via `rsync`/`scp`.
+3. **Mailbox** — `<mail-user>` for transactional mail (Hostinger: SMTP `smtp.hostinger.com:465`).
+4. **Repo access** — give the server read access (a read-only deploy key or a PAT) so `git clone`/`pull` works, or upload via `rsync`/`scp`.
 
 ## First deploy (over SSH)
 
 ```bash
 # 1. Code
-cd ~/domains/alvarocdev.com
+cd ~/domains/<domain>
 git clone <repo> nexo-id && cd nexo-id
 composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
@@ -24,13 +24,13 @@ cp .env.example .env
 php artisan key:generate            # BEFORE setting APP_ENV=production
 #   Edit .env:
 #   APP_ENV=production, APP_DEBUG=false
-#   APP_URL=https://nexoid.alvarocdev.com
+#   APP_URL=https://<nexoid-host>
 #   DB_DATABASE=<db>, DB_USERNAME=<db-user>, DB_PASSWORD=<db-pass>
 #   SESSION_SECURE_COOKIE=true
-#   MAIL_MAILER=smtp, MAIL_SCHEME=smtps, MAIL_HOST=smtp.hostinger.com, MAIL_PORT=465,
-#     MAIL_USERNAME=nexoid@alvarocdev.com, MAIL_PASSWORD=..., MAIL_FROM_ADDRESS=nexoid@alvarocdev.com
+#   MAIL_MAILER=smtp, MAIL_SCHEME=smtps, MAIL_HOST=<smtp-host>, MAIL_PORT=465,
+#     MAIL_USERNAME=<mail-user>, MAIL_PASSWORD=..., MAIL_FROM_ADDRESS=<mail-user>
 #   OPENID_FORCE_HTTPS=true
-#   NEXO_ATTRIBUTION_URL=https://alvarocdev.com/?utm_source=nexo-id&utm_medium=powered-by
+#   NEXO_ATTRIBUTION_NAME / NEXO_ATTRIBUTION_URL per your instance
 
 # 3. OAuth signing keys — generated ON THE SERVER, never committed
 php artisan passport:keys
@@ -42,46 +42,48 @@ ln -s "$PWD/storage/app/public" "$PWD/public/storage"   # storage:link fails (ex
 
 # 5. Assets — built locally/CI, then uploaded from your machine:
 #   npm run build
-#   scp -P 65002 -r public/build <ssh-user>@<host-ssh>:~/domains/alvarocdev.com/nexo-id/public/
+#   scp -P <ssh-port> -r public/build <ssh-user>@<host-ssh>:~/domains/<domain>/nexo-id/public/
 
 # 6. Discover packages + production caches
 php artisan package:discover
 php artisan config:cache && php artisan route:cache && php artisan view:cache
 
 # 7. Point the subdomain at public/ (this turns it on)
-cd ~/domains/alvarocdev.com
-rm -rf public_html/nexoid            # Hostinger seeds a default.php here
-ln -s ~/domains/alvarocdev.com/nexo-id/public public_html/nexoid
+cd ~/domains/<domain>
+rm -rf public_html/<subdomain-folder>    # the panel seeds a default.php here
+ln -s ~/domains/<domain>/nexo-id/public public_html/<subdomain-folder>
 
-# 8. Cron (hPanel → Cron Jobs) — runs the scheduler (nightly passport:purge)
-#   * * * * * cd ~/domains/alvarocdev.com/nexo-id && php artisan schedule:run >> /dev/null 2>&1
+# 8. Cron (panel → Cron Jobs) — runs the scheduler (nightly passport:purge)
+#   * * * * * cd ~/domains/<domain>/nexo-id && php artisan schedule:run >> /dev/null 2>&1
 
-# 9. Register the first client(s), e.g. Nexo Short:
-php artisan nexo:sso-client "Nexo Short" --redirect=https://nxo.li/auth/callback
+# 9. Register the first client(s) — the redirect must EXACTLY match the tool's
+#    callback route (the nexo-sso-client template registers /auth/nexo/callback):
+php artisan nexo:sso-client "My Tool" --redirect=https://<tool-host>/auth/nexo/callback
 ```
 
 ## Post-deploy verification
 
 ```bash
-curl -sS -o /dev/null -w "%{http_code}\n" https://nexoid.alvarocdev.com                       # 200
-curl -sS https://nexoid.alvarocdev.com/.well-known/openid-configuration | grep -o '"issuer":"[^"]*"'  # https, correct host
-curl -sS -D - -o /dev/null https://nexoid.alvarocdev.com | grep -i content-security-policy      # strict policy, not upgrade-insecure-requests
+curl -sS -o /dev/null -w "%{http_code}\n" https://<nexoid-host>                       # 200
+curl -sS https://<nexoid-host>/.well-known/openid-configuration | grep -o '"issuer":"[^"]*"'  # https, correct host
+curl -sS -D - -o /dev/null https://<nexoid-host> | grep -i content-security-policy      # strict policy, not upgrade-insecure-requests
 ```
 
 Then in a browser: register → verify email (real SMTP) → sign in; and drive one full OAuth flow from a client. Check the console for CSP violations.
 
-## Gotchas (LiteSpeed / Hostinger)
+## Gotchas (LiteSpeed / shared hosting)
 
 - **SSH "connection reset"** → you're on the domain's A-record IP, not the hosting server. Use the panel's SSH host.
 - **`storage:link` fails** (`exec()` disabled) → the manual `ln -s` in step 4.
 - **CSP overwritten** by LiteSpeed "Force HTTPS" → re-asserted in `public/.htaccess` (kept in sync with the middleware by `SecurityHeadersHtaccessSyncTest`).
-- **`public_html/nexoid`** ships a `default.php` → `rm -rf` before the symlink (step 7).
+- **`public_html/<subdomain-folder>`** ships a `default.php` → `rm -rf` before the symlink (step 7).
 - **Passport keys** must exist on the server and stay out of git; regenerate only with care (invalidates issued tokens).
+- **uuid user columns**: migrations include `fix_oauth_user_id_columns_for_uuid_users` — never skip migrations; non-strict MySQL/MariaDB would otherwise truncate uuids silently.
 
 ## Updates
 
 ```bash
-cd ~/domains/alvarocdev.com/nexo-id
+cd ~/domains/<domain>/nexo-id
 php artisan down && git pull
 composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 php artisan package:discover
@@ -93,5 +95,5 @@ php artisan up
 
 ## Production baseline (per standards)
 
-- **Backups**: verified — take a DB dump, restore it once to a scratch DB to prove it works.
-- **Uptime monitoring**: a basic check on `https://nexoid.alvarocdev.com/up` (Laravel health route).
+- **Backups**: verified — automated DB dumps with at least one restore tested against a scratch DB.
+- **Uptime monitoring**: an external check on `https://<nexoid-host>/up` (Laravel health route).

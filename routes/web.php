@@ -14,6 +14,33 @@ use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'home')->name('home');
 
+Route::get('/sitemap.xml', function () {
+    $xml = cache()->remember('sitemap', now()->addHour(), fn (): string => '<?xml version="1.0" encoding="UTF-8"?>'
+        .'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+        .'<url><loc>'.e(url('/')).'</loc></url>'
+        .'</urlset>');
+
+    return response($xml, 200, ['Content-Type' => 'application/xml']);
+})->name('sitemap');
+
+Route::get('/robots.txt', function () {
+    $lines = [
+        'User-agent: *',
+        'Disallow: /login',
+        'Disallow: /register',
+        'Disallow: /forgot-password',
+        'Disallow: /reset-password/',
+        'Disallow: /verify-email',
+        'Disallow: /profile',
+        'Disallow: /oauth/',
+        'Disallow: /email/',
+        '',
+        'Sitemap: '.route('sitemap'),
+    ];
+
+    return response(implode("\n", $lines), 200, ['Content-Type' => 'text/plain']);
+})->name('robots');
+
 Route::middleware('guest')->group(function () {
     Route::get('register', [RegisteredUserController::class, 'create'])->name('register');
     Route::post('register', [RegisteredUserController::class, 'store'])

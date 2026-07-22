@@ -6,6 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="referrer" content="strict-origin-when-cross-origin">
     <title>@yield('title', config('app.name'))</title>
+    @yield('head-meta')
     <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>

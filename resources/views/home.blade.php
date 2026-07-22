@@ -1,5 +1,15 @@
 @extends('layouts.app')
 
+@section('head-meta')
+    <meta name="description" content="{{ __('One account for every Nexo tool — open-source, self-hostable single sign-on for the Nexo ecosystem.') }}">
+    <link rel="canonical" href="{{ url('/') }}">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{{ config('app.name') }} — {{ __('One account for every Nexo tool.') }}">
+    <meta property="og:description" content="{{ __('One account for every Nexo tool — open-source, self-hostable single sign-on for the Nexo ecosystem.') }}">
+    <meta property="og:url" content="{{ url('/') }}">
+    <meta name="twitter:card" content="summary">
+@endsection
+
 @section('content')
     <div class="flex flex-1 flex-col justify-center gap-6">
         <div class="flex items-center gap-3">

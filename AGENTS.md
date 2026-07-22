@@ -45,7 +45,7 @@ Live at **https://nexoid.alvarocdev.com** (deployed 2026-07-20 via the `deploy-l
 
 - **2026-07-19** — Foundational ADRs 001–005 **accepted by Alvaro at Gate 0** (product model, stack, SSO protocol, tool auth model, migration strategy). See [docs/adr/](docs/adr/). Gate decisions: repo slug `nexo-id`, hosted instance `nexoid.alvarocdev.com`.
 - **2026-07-19** — Fact from Gate 0 that reshaped ADR-005: **neither Nexo Links nor Nexo Agenda has registered users yet**, so "migration" is just lazy account linking — no import machinery.
-- **2026-07-19** — `nexo-id.md` (root) is the pre-planning evaluation document: treat it as **input, not decisions**. ADR-003/004/005 explicitly supersede its §2–4; its §5 security minimums live on as SCOPE requirements. Before the repo goes public, decide whether it stays (it's Spanish and pre-decision; candidate to drop or move once ADRs are accepted).
+- **2026-07-19** — `nexo-id.md` (root) was the pre-planning evaluation document: treat it as **input, not decisions**. ADR-003/004/005 explicitly supersede its §2–4; its §5 security minimums live on as SCOPE requirements. **Resolved 2026-07-22 (task 3.5, owner decision): moved out of the repo** to the standards repo (`inbox/nexoid/nexo-id-evaluacion-preplanning.md`); it remains in git history (not sensitive, just pre-decision Spanish material). Author email `alvaro@mc4pc.com` re-confirmed OK for the public repo.
 
 ## Accumulated context
 
