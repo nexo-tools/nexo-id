@@ -2,7 +2,7 @@
 
 Nexo ID runs on Laravel 13 + MySQL on shared hosting (tested on Hostinger + LiteSpeed), served from a subdomain via a symlink to `public/`. This is the same playbook the sibling Nexo tools use, plus the OIDC specifics (Passport keys, forced HTTPS). Placeholders: `<nexoid-host>` (e.g. `nexoid.example.com`), `<domain>` (the hosting account's domain folder), `<host-ssh>` (panel SSH host), `<ssh-user>` (e.g. `u123456`), `<db>`, `<db-user>`, `<db-pass>`, `<mail-user>` (e.g. `nexoid@example.com`).
 
-Assumptions: SSH on the port your panel shows (Hostinger: **65002**, hPanel → Advanced → SSH Access — use the exact host from that panel, not the domain's A-record). PHP 8.x + Composer over SSH; **no Node on the server** — assets are built locally/CI and uploaded.
+Assumptions: SSH on the host and port your panel shows (on Hostinger both live under hPanel → Advanced → SSH Access — a non-default port, and the exact host from that panel, not the domain's A-record). PHP 8.x + Composer over SSH; **no Node on the server** — assets are built locally/CI and uploaded.
 
 ## One-time: hosting panel
 
