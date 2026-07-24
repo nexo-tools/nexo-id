@@ -1,14 +1,10 @@
 @extends('layouts.app')
 
-@section('head-meta')
-    <meta name="description" content="{{ __('One account for every Nexo tool — open-source, self-hostable single sign-on for the Nexo ecosystem.') }}">
-    <link rel="canonical" href="{{ url('/') }}">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="{{ config('app.name') }} — {{ __('One account for every Nexo tool.') }}">
-    <meta property="og:description" content="{{ __('One account for every Nexo tool — open-source, self-hostable single sign-on for the Nexo ecosystem.') }}">
-    <meta property="og:url" content="{{ url('/') }}">
-    <meta property="og:image" content="{{ asset('og-image.png') }}">
-    <meta name="twitter:card" content="summary_large_image">
+@section('seo')
+    <x-nexo-seo
+        :title="config('app.name').' — '.__('One account for every Nexo tool.')"
+        :description="__('One account for every Nexo tool — open-source, self-hostable single sign-on for the Nexo ecosystem.')"
+        :canonical="url('/')" />
 @endsection
 
 @section('content')

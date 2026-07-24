@@ -7,7 +7,17 @@ it('serves meta description, canonical and open graph tags on the home page', fu
         ->toContain('<meta name="description"')
         ->toContain('<link rel="canonical" href="'.url('/').'"')
         ->toContain('<meta property="og:title"')
-        ->toContain('<meta property="og:url" content="'.url('/').'"');
+        ->toContain('<meta property="og:url" content="'.url('/').'"')
+        ->toContain('<meta name="theme-color"')
+        ->toContain('hreflang="es"')
+        ->toContain('hreflang="en"')
+        ->toContain('hreflang="pt"')
+        ->toContain('hreflang="x-default"')
+        // The shared component's doc comment must stay a comment (no leaked literal
+        // props) and prop values must be escaped exactly once (no double-encoding).
+        ->not->toContain(':hreflang=')
+        ->not->toContain(':noindex=')
+        ->not->toContain('&amp;#0');
 });
 
 it('marks auth pages as noindex', function () {

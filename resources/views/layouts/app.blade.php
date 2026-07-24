@@ -5,7 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="referrer" content="strict-origin-when-cross-origin">
-    <title>@yield('title', config('app.name'))</title>
+    {{-- A page may own its whole SEO head (title + meta) via the `seo` section
+         (the shared <x-nexo-seo> component, which emits its own <title>); otherwise
+         the layout emits the plain title and lets the page add meta via head-meta. --}}
+    @hasSection('seo')
+        @yield('seo')
+    @else
+        <title>@yield('title', config('app.name'))</title>
+    @endif
     @yield('head-meta')
     <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="48x48">
     <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">

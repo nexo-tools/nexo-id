@@ -15,7 +15,7 @@ it('has no hardcoded hex colors in blade views or app css (use --nexo-* tokens)'
     $roots = array_filter([resource_path('views'), resource_path('css')], 'is_dir');
 
     // Filenames allowed to contain literal hex.
-    $allowed = ['nexo-tokens.css', 'nexo-ui.css', 'brand.blade.php'];
+    $allowed = ['nexo-tokens.css', 'nexo-ui.css', 'brand.blade.php', 'nexo-seo.blade.php'];
 
     $offenders = [];
     foreach ($roots as $root) {
