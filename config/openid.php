@@ -14,9 +14,8 @@ return [
             'openid' => 'Enable OpenID Connect',
             'profile' => 'Information about your profile',
             'email' => 'Information about your email address',
-            'phone' => 'Information about your phone numbers',
-            'address' => 'Information about your address',
-            // 'login' => 'See your login information',
+            // phone/address are omitted: IdentityEntity backs no such claims, so
+            // advertising them (discovery scopes_supported / consent) would be a lie.
         ],
     ],
 

@@ -177,6 +177,15 @@ it('AC-OIDC-3: discovery and jwks are served', function () {
     expect($jwks->json('keys.0.kty'))->toBe('RSA');
 });
 
+it('AC-SCOPE-3: discovery advertises only backed scopes (no phone/address)', function () {
+    $scopes = $this->getJson('/.well-known/openid-configuration')
+        ->assertOk()
+        ->json('scopes_supported');
+
+    expect($scopes)->toEqualCanonicalizing(['openid', 'profile', 'email']);
+    expect($scopes)->not->toContain('phone')->not->toContain('address');
+});
+
 it('AC-OIDC-4: sub equals the user uuid and is stable across logins', function () {
     $client = oidcClient();
     $user = User::factory()->create();
