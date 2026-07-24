@@ -1,6 +1,6 @@
 # ARCHITECTURE — Nexo ID
 
-> What exists and where. Updated at each gate ("ARCHITECTURE matches reality"). Reflects the end of Phase 2 build (SSO provider implemented and tested; production deploy is the owner-gated task 2.9, not yet done).
+> What exists and where. Updated at each gate ("ARCHITECTURE matches reality"). Reflects Phase 2 complete: the SSO provider is implemented, tested, and **deployed to production** (`nexoid.alvarocdev.com`, task 2.9, 2026-07-20; the uuid oauth-column fix followed on 2026-07-22).
 
 ## Stack
 
@@ -49,4 +49,4 @@ Laravel Passport 13 + `jeremy379/laravel-openid-connect` ([ADR-008](adr/ADR-008-
 
 ## Not here yet (later phases)
 
-Production deploy to `nexoid.alvarocdev.com` (owner-gated task 2.9); third-party consent UI; back-channel logout; 2FA; "your tools" page.
+Production is live (task 2.9, 2026-07-20). Still deferred: backups + uptime monitoring (owner-deferred to a cross-tool ops pass before real users, PLAN Gate 3); Gate 3 (Nexo Short consuming the provider end-to-end); third-party consent UI; back-channel logout; 2FA; "your tools" page.
