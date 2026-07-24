@@ -1,9 +1,66 @@
 @import 'tailwindcss';
 
+/* Nexo brand tokens FIRST, then the shared chrome layer (header/footer/switchers). */
+@import './nexo-tokens.css';
+@import './nexo-ui.css';
+
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
+/* Dark utilities follow the stamped [data-theme="dark"] (theme-init + toggle),
+   not prefers-color-scheme — so an explicit choice wins over the OS. The tokens
+   themselves still honour prefers-color-scheme when no choice is stamped. */
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+[x-cloak] {
+    display: none !important;
+}
+
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    /* Keep the self-hosted Instrument Sans face; Nexo system stack as fallback. */
+    --font-sans: 'Instrument Sans', var(--nexo-font-sans);
+    --font-mono: var(--nexo-font-mono);
+
+    /* Brand accent scale → Nexo violet tokens (see nexo-tokens.css / docs/BRAND). */
+    --color-brand-50: var(--nexo-violet-50);
+    --color-brand-100: var(--nexo-violet-100);
+    --color-brand-200: var(--nexo-violet-200);
+    --color-brand-300: var(--nexo-violet-300);
+    --color-brand-400: var(--nexo-violet-400);
+    --color-brand-500: var(--nexo-violet-500);
+    --color-brand-600: var(--nexo-violet-600);
+    --color-brand-700: var(--nexo-violet-700);
+    --color-brand-800: var(--nexo-violet-800);
+    --color-brand-900: var(--nexo-violet-900);
+    --color-brand-950: var(--nexo-violet-950);
+
+    /* Theme-aware primary (resolves to the light/dark value via data-theme), so
+       bg-primary / hover:bg-primary-hover / text-primary-fg work in both modes. */
+    --color-primary: var(--nexo-primary);
+    --color-primary-hover: var(--nexo-primary-hover);
+    --color-primary-fg: var(--nexo-primary-fg);
+    --color-primary-subtle: var(--nexo-primary-subtle);
+    --color-primary-subtle-fg: var(--nexo-primary-subtle-fg);
+
+    /* Semantic surfaces/text/lines — content uses bg-bg / bg-surface / text-ink /
+       text-muted / text-subtle / border-line and stays theme-aware. */
+    --color-bg: var(--nexo-bg);
+    --color-bg-subtle: var(--nexo-bg-subtle);
+    --color-surface: var(--nexo-surface);
+    --color-surface-raised: var(--nexo-surface-raised);
+    --color-surface-sunken: var(--nexo-surface-sunken);
+    --color-ink: var(--nexo-text);
+    --color-muted: var(--nexo-text-muted);
+    --color-subtle: var(--nexo-text-subtle);
+    --color-line: var(--nexo-border);
+    --color-line-strong: var(--nexo-border-strong);
+    --color-ring: var(--nexo-ring);
+
+    /* Status accents (success/danger) for pills, alerts and destructive links. */
+    --color-success: var(--nexo-success);
+    --color-success-subtle: var(--nexo-success-subtle);
+    --color-success-subtle-fg: var(--nexo-success-subtle-fg);
+    --color-danger: var(--nexo-danger);
+    --color-danger-subtle: var(--nexo-danger-subtle);
+    --color-danger-subtle-fg: var(--nexo-danger-subtle-fg);
 }

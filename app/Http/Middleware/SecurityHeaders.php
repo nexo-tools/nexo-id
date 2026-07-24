@@ -47,10 +47,13 @@ class SecurityHeaders
 
     private function contentSecurityPolicy(): string
     {
-        // No Alpine/eval here (unlike the sibling tools): scripts stay locked to
-        // 'self'. Inline styles cover the odd style attribute; there is no inline
-        // <script> anywhere. Fonts are self-hosted, so every source is same-origin.
-        $script = "'self'";
+        // Alpine (shared Nexo chrome) evaluates directive expressions at runtime,
+        // which needs 'unsafe-eval'. The only inline <script> is the FOUC-free
+        // theme-init (partials/theme-init); it is allow-listed by its exact sha256
+        // hash — no 'unsafe-inline' for scripts. If you edit that snippet, recompute
+        // the hash (and mirror it in public/.htaccess). Fonts are self-hosted, so
+        // every source is same-origin.
+        $script = "'self' 'unsafe-eval' 'sha256-q0puGALRdXRJIRldb9avY05vEAmqxd4zX/mmrF5cgnU='";
         $style = "'self' 'unsafe-inline'";
         $connect = "'self'";
 
