@@ -53,7 +53,7 @@ class SecurityHeaders
         // hash — no 'unsafe-inline' for scripts. If you edit that snippet, recompute
         // the hash (and mirror it in public/.htaccess). Fonts are self-hosted, so
         // every source is same-origin.
-        $script = "'self' 'unsafe-eval' 'sha256-q0puGALRdXRJIRldb9avY05vEAmqxd4zX/mmrF5cgnU='";
+        $script = "'self' 'unsafe-eval' 'sha256-QY4re+NFw+ChK0c8H/EaTpktoUisSWU0fL7V6J43umM='";
         $style = "'self' 'unsafe-inline'";
         $connect = "'self'";
 

@@ -12,11 +12,14 @@ it('AC-I18N-1: honours the accept-language header', function () {
         ->assertSee('Uma conta para todas as ferramentas Nexo.');
 });
 
-it('AC-I18N-1: switches with the lang parameter and persists in the session', function () {
-    $this->get('/?lang=es')->assertSee('Una sola cuenta para todas las herramientas Nexo.');
+it('AC-I18N-1: switches with the lang parameter and persists in the shared nexo-lang cookie', function () {
+    $this->get('/?lang=es')
+        ->assertSee('Una sola cuenta para todas las herramientas Nexo.')
+        ->assertPlainCookie('nexo-lang', 'es');
 
-    // Next request without the parameter keeps Spanish.
-    $this->get('/')->assertSee('Una sola cuenta para todas las herramientas Nexo.');
+    // A later request carrying the cookie keeps Spanish (shared across tools).
+    $this->withUnencryptedCookie('nexo-lang', 'es')
+        ->get('/')->assertSee('Una sola cuenta para todas las herramientas Nexo.');
 });
 
 it('AC-I18N-1: ignores unsupported locales', function () {
