@@ -8,7 +8,7 @@ php artisan down --retry=30 || true
 git pull origin main
 # --no-scripts: shared hosts often disable proc_open, which Composer
 # needs to run post-install scripts; we run package:discover directly.
-composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
+composer install --no-dev --optimize-autoloader --no-interaction --no-scripts --ignore-platform-req=ext-sodium
 php artisan package:discover --ansi
 php artisan migrate --force
 php artisan config:cache
