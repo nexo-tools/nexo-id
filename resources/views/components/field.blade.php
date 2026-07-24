@@ -8,7 +8,7 @@
 ])
 
 <div class="mb-4">
-    <label for="{{ $name }}" class="mb-1 block text-sm text-neutral-300">{{ $label }}</label>
+    <label for="{{ $name }}" class="mb-1 block text-sm text-muted">{{ $label }}</label>
     <input
         type="{{ $type }}"
         name="{{ $name }}"
@@ -16,9 +16,9 @@
         value="{{ $type === 'password' ? '' : old($name, $value) }}"
         @if ($autocomplete) autocomplete="{{ $autocomplete }}" @endif
         @if ($required) required @endif
-        {{ $attributes->merge(['class' => 'w-full rounded-lg border border-white/10 bg-neutral-950 px-3 py-2 text-neutral-100 outline-none focus:border-emerald-500']) }}
+        {{ $attributes->merge(['class' => 'w-full rounded-lg border border-line bg-bg px-3 py-2 text-ink outline-none focus:border-primary']) }}
     >
     @error($name)
-        <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
+        <p class="mt-1 text-sm text-danger">{{ $message }}</p>
     @enderror
 </div>

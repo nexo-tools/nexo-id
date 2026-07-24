@@ -5,7 +5,7 @@
 
 @section('content')
     @if (session('status'))
-        <p class="mb-4 rounded-lg bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">{{ session('status') }}</p>
+        <p class="mb-4 rounded-lg bg-success-subtle px-3 py-2 text-sm text-success-subtle-fg">{{ session('status') }}</p>
     @endif
 
     <form method="POST" action="{{ url('/login') }}">
@@ -14,22 +14,22 @@
         <x-field name="email" type="email" :label="__('Email')" autocomplete="email" />
         <x-field name="password" type="password" :label="__('Password')" autocomplete="current-password" />
 
-        <label class="mb-4 flex items-center gap-2 text-sm text-neutral-400">
-            <input type="checkbox" name="remember" class="rounded border-white/20 bg-neutral-950">
+        <label class="mb-4 flex items-center gap-2 text-sm text-muted">
+            <input type="checkbox" name="remember" class="rounded border-line bg-bg">
             {{ __('Remember me') }}
         </label>
 
         <button type="submit"
-                class="w-full rounded-lg bg-emerald-500 px-4 py-2 font-medium text-emerald-950 hover:bg-emerald-400">
+                class="w-full rounded-lg bg-primary px-4 py-2 font-medium text-primary-fg hover:bg-primary-hover">
             {{ __('Sign in') }}
         </button>
     </form>
 
-    <div class="mt-6 flex flex-col gap-2 text-center text-sm text-neutral-400">
-        <a href="{{ url('/forgot-password') }}" class="text-emerald-400 hover:text-emerald-300">{{ __('Forgot your password?') }}</a>
+    <div class="mt-6 flex flex-col gap-2 text-center text-sm text-muted">
+        <a href="{{ url('/forgot-password') }}" class="text-primary hover:text-primary-hover">{{ __('Forgot your password?') }}</a>
         <p>
             {{ __('Don\'t have an account?') }}
-            <a href="{{ route('register') }}" class="text-emerald-400 hover:text-emerald-300">{{ __('Create account') }}</a>
+            <a href="{{ route('register') }}" class="text-primary hover:text-primary-hover">{{ __('Create account') }}</a>
         </p>
     </div>
 @endsection

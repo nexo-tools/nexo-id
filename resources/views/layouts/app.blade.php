@@ -7,30 +7,29 @@
     <meta name="referrer" content="strict-origin-when-cross-origin">
     <title>@yield('title', config('app.name'))</title>
     @yield('head-meta')
+    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="48x48">
     <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
+    <link rel="manifest" href="{{ asset('site.webmanifest') }}">
+    {{-- Stamp <html data-theme> before the stylesheet loads (no FOUC). --}}
+    @include('partials.theme-init')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="flex min-h-full flex-col bg-neutral-950 text-neutral-100 antialiased">
-    <header class="border-b border-white/10">
-        <div class="mx-auto flex w-full max-w-3xl items-center justify-between px-6 py-4">
-            <a href="{{ url('/') }}" class="flex items-center gap-2 font-semibold">
-                @include('partials.brand')
-                <span>{{ config('app.name') }}</span>
-            </a>
-            <nav class="flex items-center gap-3 text-sm text-neutral-400" aria-label="{{ __('Language') }}">
-                @foreach (config('nexo.locales') as $locale)
-                    <a href="{{ request()->fullUrlWithQuery(['lang' => $locale]) }}"
-                       class="uppercase hover:text-neutral-100 {{ app()->getLocale() === $locale ? 'text-neutral-100 font-semibold' : '' }}"
-                       @if (app()->getLocale() === $locale) aria-current="true" @endif>{{ $locale }}</a>
-                @endforeach
-            </nav>
-        </div>
-    </header>
+<body class="flex min-h-full flex-col bg-bg font-sans text-ink antialiased">
+    <x-nexo-header brand="Nexo ID" mark="/ecosystem/nexoid.svg" :home="url('/')">
+        <x-slot:actions>
+            @auth
+                <a href="{{ url('/profile') }}" class="nexo-btn nexo-btn--ghost">{{ __('Your account') }}</a>
+            @else
+                <a href="{{ url('/login') }}" class="nexo-btn nexo-btn--ghost">{{ __('Sign in') }}</a>
+            @endauth
+        </x-slot:actions>
+    </x-nexo-header>
 
     <main class="mx-auto flex w-full max-w-3xl flex-1 flex-col px-6 py-12">
         @yield('content')
     </main>
 
-    @include('partials.footer')
+    <x-nexo-footer />
 </body>
 </html>

@@ -8,12 +8,12 @@
             <h1 class="text-2xl font-semibold">{{ __('Your account') }}</h1>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
-                <button type="submit" class="text-sm text-neutral-400 hover:text-neutral-100">{{ __('Sign out') }}</button>
+                <button type="submit" class="text-sm text-muted hover:text-ink">{{ __('Sign out') }}</button>
             </form>
         </div>
 
         @if (session('status'))
-            <p class="rounded-lg bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">{{ session('status') }}</p>
+            <p class="rounded-lg bg-success-subtle px-3 py-2 text-sm text-success-subtle-fg">{{ session('status') }}</p>
         @endif
 
         {{-- Profile information (AC-PROFILE-1) --}}
@@ -24,12 +24,12 @@
                 @method('PATCH')
                 <x-field name="display_name" :label="__('Display name')" :value="$user->display_name" autocomplete="name" />
                 <div class="mb-4">
-                    <label class="mb-1 block text-sm text-neutral-300">{{ __('Email') }}</label>
+                    <label class="mb-1 block text-sm text-muted">{{ __('Email') }}</label>
                     <input type="email" value="{{ $user->email }}" disabled
-                           class="w-full rounded-lg border border-white/10 bg-neutral-900 px-3 py-2 text-neutral-500">
+                           class="w-full rounded-lg border border-line bg-surface-sunken px-3 py-2 text-subtle">
                 </div>
                 <button type="submit"
-                        class="rounded-lg bg-emerald-500 px-4 py-2 font-medium text-emerald-950 hover:bg-emerald-400">{{ __('Save') }}</button>
+                        class="rounded-lg bg-primary px-4 py-2 font-medium text-primary-fg hover:bg-primary-hover">{{ __('Save') }}</button>
             </form>
         </section>
 
@@ -43,7 +43,7 @@
                 <x-field name="password" type="password" :label="__('New password')" autocomplete="new-password" />
                 <x-field name="password_confirmation" type="password" :label="__('Confirm password')" autocomplete="new-password" />
                 <button type="submit"
-                        class="rounded-lg bg-emerald-500 px-4 py-2 font-medium text-emerald-950 hover:bg-emerald-400">{{ __('Update password') }}</button>
+                        class="rounded-lg bg-primary px-4 py-2 font-medium text-primary-fg hover:bg-primary-hover">{{ __('Update password') }}</button>
             </form>
         </section>
 
@@ -55,34 +55,34 @@
                     <form method="POST" action="{{ route('sessions.destroy-others') }}">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="text-sm text-red-400 hover:text-red-300">{{ __('Sign out all other sessions') }}</button>
+                        <button type="submit" class="text-sm text-danger hover:underline">{{ __('Sign out all other sessions') }}</button>
                     </form>
                 @endif
             </div>
 
             <ul class="flex flex-col gap-3">
                 @forelse ($sessions as $session)
-                    <li class="flex items-center justify-between rounded-lg border border-white/10 px-4 py-3">
+                    <li class="flex items-center justify-between rounded-lg border border-line px-4 py-3">
                         <div class="text-sm">
-                            <p class="text-neutral-200">
+                            <p class="text-ink">
                                 {{ $session->ipAddress ?? __('Unknown IP') }}
                                 @if ($session->isCurrent)
-                                    <span class="ml-2 rounded bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-300">{{ __('This device') }}</span>
+                                    <span class="ml-2 rounded bg-success-subtle px-2 py-0.5 text-xs text-success-subtle-fg">{{ __('This device') }}</span>
                                 @endif
                             </p>
-                            <p class="text-neutral-500">{{ \Illuminate\Support\Str::limit($session->userAgent ?? __('Unknown device'), 60) }}</p>
-                            <p class="text-neutral-600">{{ __('Last active :time', ['time' => $session->lastActive->diffForHumans()]) }}</p>
+                            <p class="text-subtle">{{ \Illuminate\Support\Str::limit($session->userAgent ?? __('Unknown device'), 60) }}</p>
+                            <p class="text-subtle">{{ __('Last active :time', ['time' => $session->lastActive->diffForHumans()]) }}</p>
                         </div>
                         @unless ($session->isCurrent)
                             <form method="POST" action="{{ route('sessions.destroy', $session->id) }}">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="text-sm text-red-400 hover:text-red-300">{{ __('Sign out') }}</button>
+                                <button type="submit" class="text-sm text-danger hover:underline">{{ __('Sign out') }}</button>
                             </form>
                         @endunless
                     </li>
                 @empty
-                    <li class="text-sm text-neutral-500">{{ __('No other active sessions.') }}</li>
+                    <li class="text-sm text-subtle">{{ __('No other active sessions.') }}</li>
                 @endforelse
             </ul>
         </section>

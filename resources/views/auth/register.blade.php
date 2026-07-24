@@ -13,13 +13,13 @@
         <x-field name="password_confirmation" type="password" :label="__('Confirm password')" autocomplete="new-password" />
 
         <button type="submit"
-                class="w-full rounded-lg bg-emerald-500 px-4 py-2 font-medium text-emerald-950 hover:bg-emerald-400">
+                class="w-full rounded-lg bg-primary px-4 py-2 font-medium text-primary-fg hover:bg-primary-hover">
             {{ __('Create account') }}
         </button>
     </form>
 
-    <p class="mt-6 text-center text-sm text-neutral-400">
+    <p class="mt-6 text-center text-sm text-muted">
         {{ __('Already have an account?') }}
-        <a href="{{ url('/login') }}" class="text-emerald-400 hover:text-emerald-300">{{ __('Sign in') }}</a>
+        <a href="{{ url('/login') }}" class="text-primary hover:text-primary-hover">{{ __('Sign in') }}</a>
     </p>
 @endsection

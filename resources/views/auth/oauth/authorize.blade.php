@@ -4,14 +4,14 @@
 @section('heading', __('Authorize :client', ['client' => $client->name]))
 
 @section('content')
-    <p class="mb-4 text-sm text-neutral-400">
+    <p class="mb-4 text-sm text-muted">
         {{ __(':client wants to access your Nexo ID account.', ['client' => $client->name]) }}
     </p>
 
     @if (count($scopes) > 0)
         <div class="mb-6">
-            <p class="mb-2 text-sm text-neutral-300">{{ __('This will allow it to:') }}</p>
-            <ul class="list-disc space-y-1 pl-5 text-sm text-neutral-400">
+            <p class="mb-2 text-sm text-muted">{{ __('This will allow it to:') }}</p>
+            <ul class="list-disc space-y-1 pl-5 text-sm text-muted">
                 @foreach ($scopes as $scope)
                     <li>{{ $scope->description }}</li>
                 @endforeach
@@ -26,7 +26,7 @@
             <input type="hidden" name="client_id" value="{{ $client->getKey() }}">
             <input type="hidden" name="auth_token" value="{{ $authToken }}">
             <button type="submit"
-                    class="w-full rounded-lg bg-emerald-500 px-4 py-2 font-medium text-emerald-950 hover:bg-emerald-400">{{ __('Authorize') }}</button>
+                    class="w-full rounded-lg bg-primary px-4 py-2 font-medium text-primary-fg hover:bg-primary-hover">{{ __('Authorize') }}</button>
         </form>
 
         <form method="POST" action="{{ route('passport.authorizations.deny') }}" class="flex-1">
@@ -36,7 +36,7 @@
             <input type="hidden" name="client_id" value="{{ $client->getKey() }}">
             <input type="hidden" name="auth_token" value="{{ $authToken }}">
             <button type="submit"
-                    class="w-full rounded-lg border border-white/15 px-4 py-2 font-medium text-neutral-100 hover:bg-white/5">{{ __('Cancel') }}</button>
+                    class="w-full rounded-lg border border-line px-4 py-2 font-medium text-ink hover:bg-bg-subtle">{{ __('Cancel') }}</button>
         </form>
     </div>
 @endsection
