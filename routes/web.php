@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\HelpController;
+use App\Http\Controllers\Oidc\EndSessionController;
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SessionController;
@@ -18,6 +19,13 @@ Route::view('/', 'home')->name('home');
 // Public help center (no catch-all in this app, but registered here in the
 // public block so it can never be shadowed). Uses layouts.app + the Nexo chrome.
 Route::get('/help', HelpController::class)->name('help');
+
+// OIDC RP-initiated (front-channel) logout. Lives in web.php (not oidc.php) so it
+// runs inside the session middleware and can end the browser session; the route
+// NAME is what the discovery controller advertises as end_session_endpoint. It
+// validates post_logout_redirect_uri against the id_token_hint client's URIs and
+// never open-redirects. (ADR-009 / M4b)
+Route::get('/oauth/logout', EndSessionController::class)->name('openid.end_session_endpoint');
 
 Route::get('/sitemap.xml', function () {
     $xml = cache()->remember('sitemap', now()->addHour(), fn (): string => '<?xml version="1.0" encoding="UTF-8"?>'

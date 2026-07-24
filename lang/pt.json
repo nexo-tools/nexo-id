@@ -48,8 +48,10 @@
     "Update password": "Atualizar senha",
     "Verify your email": "Verifique seu e-mail",
     "We sent a verification link to your email address. Click it to activate your account.": "Enviamos um link de verificação para seu e-mail. Clique nele para ativar sua conta.",
+    "You are now signed out": "Sessão encerrada",
     "Your :app password was changed": "Sua senha de :app foi alterada",
     "Your account": "Sua conta",
+    "Your Nexo ID session has ended.": "A sua sessão do Nexo ID terminou.",
     "Your password was changed.": "Sua senha foi alterada.",
     "Your profile was updated.": "Seu perfil foi atualizado."
 }
