@@ -100,6 +100,62 @@ it('AC-AUTH-5: requires PKCE for a public client', function () {
     expect((string) $response->headers->get('Location'))->not->toContain('code=');
 });
 
+it('AC-PKCE-1: rejects plain code_challenge_method (no PKCE downgrade)', function () {
+    $client = ssoClient();
+    [, $challenge] = pkce();
+    $user = User::factory()->create();
+
+    $url = '/oauth/authorize?'.http_build_query([
+        'client_id' => $client->getKey(),
+        'redirect_uri' => 'https://client.test/callback',
+        'response_type' => 'code',
+        'scope' => 'openid',
+        'state' => 'xyz-state',
+        'code_challenge' => $challenge,
+        'code_challenge_method' => 'plain',
+    ]);
+
+    $this->actingAs($user)->get($url)->assertStatus(400);
+});
+
+it('AC-PKCE-1: rejects an omitted code_challenge_method (league defaults to plain)', function () {
+    $client = ssoClient();
+    [, $challenge] = pkce();
+    $user = User::factory()->create();
+
+    $url = '/oauth/authorize?'.http_build_query([
+        'client_id' => $client->getKey(),
+        'redirect_uri' => 'https://client.test/callback',
+        'response_type' => 'code',
+        'scope' => 'openid',
+        'state' => 'xyz-state',
+        'code_challenge' => $challenge,
+        // code_challenge_method intentionally omitted
+    ]);
+
+    $this->actingAs($user)->get($url)->assertStatus(400);
+});
+
+it('AC-PKCE-1: still issues a code for S256 (enforcement does not break the happy path)', function () {
+    $client = ssoClient();
+    [, $challenge] = pkce();
+    $user = User::factory()->create();
+
+    $response = $this->actingAs($user)
+        ->get(authorizeUrl($client->getKey(), 'https://client.test/callback', $challenge));
+
+    $response->assertRedirect();
+    expect((string) $response->headers->get('Location'))->toContain('code=');
+});
+
+it('AC-PKCE-2: discovery advertises S256 only (no plain)', function () {
+    $methods = $this->getJson('/.well-known/openid-configuration')
+        ->assertOk()
+        ->json('code_challenge_methods_supported');
+
+    expect($methods)->toBe(['S256']);
+});
+
 it('AC-CLIENT-2: rejects a redirect_uri that is not registered exactly', function () {
     $client = ssoClient(['https://client.test/callback']);
     [, $challenge] = pkce();

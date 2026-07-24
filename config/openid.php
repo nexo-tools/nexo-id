@@ -44,10 +44,12 @@ return [
 
     'routes' => [
         /**
-         * When set to true, this package will expose the OpenID Connect Discovery endpoint.
-         *  - /.well-known/openid-configuration
+         * The bridge's discovery route is disabled here and re-registered in
+         * routes/oidc.php (App\Http\Controllers\Oidc\OpenIdConfigurationController)
+         * so the document advertises S256-only PKCE instead of the bridge's
+         * hardcoded ['plain', 'S256']. See FIX 4 / EnforcePkceS256.
          */
-        'discovery' => true,
+        'discovery' => false,
         /**
          * When set to true, this package will expose the JSON Web Key Set endpoint.
          */
