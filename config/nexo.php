@@ -17,6 +17,12 @@ return [
         'url' => env('NEXO_ATTRIBUTION_URL', 'https://github.com/alvarocdev-git/nexo-id'),
     ],
 
+    // Help-center contact target (instance-configurable). A support form URL wins;
+    // otherwise a support email becomes a mailto:; otherwise the help page falls
+    // back to the attribution URL (the repo) so "contact us" always resolves.
+    'support_url' => env('NEXO_SUPPORT_URL', ''),
+    'support_email' => env('NEXO_SUPPORT_EMAIL', ''),
+
     // Password policy (see SPEC AC-REG-3). Kept in config so it is testable and
     // adjustable per instance without touching validation code.
     'password' => [

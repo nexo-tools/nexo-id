@@ -18,6 +18,7 @@
     {{-- Personal-preference switchers (locale + theme). The ecosystem app-switcher
          is intentionally omitted here so the sign-in / consent flow stays focused. --}}
     <div class="mx-auto flex w-full max-w-sm items-center justify-end gap-1">
+        <a href="{{ route('help') }}" class="nexo-btn nexo-btn--ghost text-sm">{{ __('nexo.help.title') }}</a>
         <x-nexo-locale-switcher />
         <x-nexo-theme-toggle />
     </div>
