@@ -2,11 +2,19 @@
 
 namespace App\Notifications;
 
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class PasswordChanged extends Notification
+/**
+ * Queued so the outbound "your password changed" mail never blocks the
+ * password-change request (ChangeUserPassword sends it after mutating state).
+ */
+class PasswordChanged extends Notification implements ShouldQueue
 {
+    use Queueable;
+
     /**
      * @return array<int, string>
      */

@@ -3,6 +3,7 @@
 use App\Models\User;
 use App\Notifications\PasswordChanged;
 use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
@@ -120,4 +121,23 @@ it('AC-PWD-6: notifies the account and revokes other sessions on reset', functio
 
     Notification::assertSentTo($user, PasswordChanged::class);
     expect(DB::table('sessions')->where('user_id', $user->id)->count())->toBe(0);
+});
+
+it('AC-PWD-6: the password-changed notification is queued (async, does not block the request)', function () {
+    Notification::fake();
+    $user = User::factory()->create();
+    $token = Password::createToken($user);
+
+    $this->post('/reset-password', [
+        'token' => $token,
+        'email' => $user->email,
+        'password' => 'brand-new-secret',
+        'password_confirmation' => 'brand-new-secret',
+    ])->assertRedirect(route('login'));
+
+    Notification::assertSentTo(
+        $user,
+        PasswordChanged::class,
+        fn (PasswordChanged $notification) => $notification instanceof ShouldQueue,
+    );
 });
