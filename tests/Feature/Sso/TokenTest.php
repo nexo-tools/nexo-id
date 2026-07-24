@@ -191,6 +191,28 @@ it('AC-OIDC-4: sub equals the user uuid and is stable across logins', function (
     expect($subs[0])->toBe($user->id)->toBe($subs[1]);
 });
 
+it('AC-RATE-2: throttles /oauth/userinfo per IP with 429', function () {
+    $client = oidcClient();
+    [$verifier, $challenge] = pkcePair();
+    $user = User::factory()->create();
+
+    $code = getAuthCode($client->getKey(), 'https://client.test/callback', $challenge, $user);
+    $token = $this->post('/oauth/token', [
+        'grant_type' => 'authorization_code',
+        'client_id' => $client->getKey(),
+        'redirect_uri' => 'https://client.test/callback',
+        'code_verifier' => $verifier,
+        'code' => $code,
+    ])->json('access_token');
+
+    // 60 authenticated requests/minute/IP are allowed; the next is 429.
+    for ($i = 0; $i < 60; $i++) {
+        expect($this->withToken($token)->getJson('/oauth/userinfo')->getStatusCode())->not->toBe(429);
+    }
+
+    $this->withToken($token)->getJson('/oauth/userinfo')->assertStatus(429);
+});
+
 it('AC-SCOPE-1: omits email/name claims when their scopes are not granted', function () {
     $client = oidcClient();
     [$verifier, $challenge] = pkcePair();

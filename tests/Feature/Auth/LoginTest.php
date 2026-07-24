@@ -87,6 +87,17 @@ it('AC-LOGIN-5: logout invalidates the session and rotates the csrf token', func
     expect(csrf_token())->not->toBe($tokenBefore);
 });
 
+it('AC-LOGIN-7: throttles login POST per IP with 429 (broad IP ceiling)', function () {
+    // Distinct emails keep the per-credential (email+IP) lockout from tripping
+    // first, so we exercise the 20/minute per-IP route throttle.
+    for ($i = 0; $i < 20; $i++) {
+        expect($this->post('/login', ['email' => "user{$i}@example.test", 'password' => 'x'])->getStatusCode())
+            ->not->toBe(429);
+    }
+
+    $this->post('/login', ['email' => 'over@example.test', 'password' => 'x'])->assertStatus(429);
+});
+
 it('AC-LOGIN-6: session cookie is http-only and same-site lax', function () {
     $user = User::factory()->create(['password' => 'correct-horse']);
 

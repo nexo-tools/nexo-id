@@ -156,6 +156,19 @@ it('AC-PKCE-2: discovery advertises S256 only (no plain)', function () {
     expect($methods)->toBe(['S256']);
 });
 
+it('AC-RATE-1: throttles /oauth/authorize per IP with 429', function () {
+    $client = ssoClient();
+    [, $challenge] = pkce();
+    $url = authorizeUrl($client->getKey(), 'https://client.test/callback', $challenge);
+
+    // 60 requests/minute/IP are allowed (unauthenticated → redirect to login).
+    for ($i = 0; $i < 60; $i++) {
+        expect($this->get($url)->getStatusCode())->not->toBe(429);
+    }
+
+    $this->get($url)->assertStatus(429);
+});
+
 it('AC-CLIENT-2: rejects a redirect_uri that is not registered exactly', function () {
     $client = ssoClient(['https://client.test/callback']);
     [, $challenge] = pkce();

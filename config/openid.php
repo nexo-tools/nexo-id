@@ -60,11 +60,11 @@ return [
          */
         'jwks_url' => '/oauth/jwks',
         /**
-         * When set to true, this package will expose the UserInfo endpoint at /oauth/userinfo.
-         * The endpoint is protected by Passport's auth:api guard and returns claims
-         * for the authenticated user filtered by the access token's granted scopes.
+         * The bridge's userinfo route is disabled here and re-registered in
+         * routes/oidc.php so it can carry a per-IP throttle (throttle:oidc-ip)
+         * in addition to Passport's auth:api guard. See FIX 5.
          */
-        'userinfo' => true,
+        'userinfo' => false,
     ],
 
     /**
