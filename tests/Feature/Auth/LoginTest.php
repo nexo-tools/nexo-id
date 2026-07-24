@@ -113,3 +113,21 @@ it('AC-LOGIN-6: session cookie is http-only and same-site lax', function () {
     expect($cookie->isHttpOnly())->toBeTrue();
     expect(strtolower($cookie->getSameSite()))->toBe('lax');
 });
+
+it('AC-LOGIN-6: session cookie is Secure over https when SESSION_SECURE_COOKIE is set', function () {
+    // Production sets SESSION_SECURE_COOKIE=true (see DEPLOYMENT.md); the cookie
+    // must then carry the Secure flag on an https request.
+    config(['session.secure' => true]);
+    $user = User::factory()->create(['password' => 'correct-horse']);
+
+    $response = $this->post('https://localhost/login', [
+        'email' => $user->email,
+        'password' => 'correct-horse',
+    ]);
+
+    $cookie = collect($response->headers->getCookies())
+        ->first(fn ($c) => $c->getName() === config('session.cookie'));
+
+    expect($cookie)->not->toBeNull();
+    expect($cookie->isSecure())->toBeTrue();
+});
