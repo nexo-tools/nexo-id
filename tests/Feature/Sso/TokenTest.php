@@ -213,25 +213,50 @@ it('AC-RATE-2: throttles /oauth/userinfo per IP with 429', function () {
     $this->withToken($token)->getJson('/oauth/userinfo')->assertStatus(429);
 });
 
-it('AC-SCOPE-1: omits email/name claims when their scopes are not granted', function () {
+it('AC-SCOPE-1: omits email/name claims (userinfo and id_token) when their scopes are not granted', function () {
     $client = oidcClient();
     [$verifier, $challenge] = pkcePair();
     $user = User::factory()->create();
 
     // Only openid scope — no profile, no email.
     $code = getAuthCode($client->getKey(), 'https://client.test/callback', $challenge, $user, 'openid');
-    $token = $this->post('/oauth/token', [
+    $tokens = $this->post('/oauth/token', [
         'grant_type' => 'authorization_code',
         'client_id' => $client->getKey(),
         'redirect_uri' => 'https://client.test/callback',
         'code_verifier' => $verifier,
         'code' => $code,
-    ])->json('access_token');
+    ])->json();
 
-    $info = $this->withToken($token)->getJson('/oauth/userinfo');
-
+    // userinfo omits the ungranted claims.
+    $info = $this->withToken($tokens['access_token'])->getJson('/oauth/userinfo');
     $info->assertOk();
     expect($info->json('sub'))->toBe($user->id);
     expect($info->json('email'))->toBeNull();
     expect($info->json('name'))->toBeNull();
+
+    // The id_token carries sub but likewise omits email/name.
+    $claims = json_decode(base64_decode(strtr(explode('.', (string) $tokens['id_token'])[1], '-_', '+/')), true);
+    expect($claims['sub'])->toBe($user->id);
+    expect($claims)->not->toHaveKey('email');
+    expect($claims)->not->toHaveKey('name');
+});
+
+it('AC-SCOPE-2: no id_token is issued when the openid scope is absent', function () {
+    $client = oidcClient();
+    [$verifier, $challenge] = pkcePair();
+    $user = User::factory()->create();
+
+    // Plain OAuth2 code flow (no openid) — OIDC id_token must not be minted.
+    $code = getAuthCode($client->getKey(), 'https://client.test/callback', $challenge, $user, 'email');
+    $body = $this->post('/oauth/token', [
+        'grant_type' => 'authorization_code',
+        'client_id' => $client->getKey(),
+        'redirect_uri' => 'https://client.test/callback',
+        'code_verifier' => $verifier,
+        'code' => $code,
+    ])->json();
+
+    expect($body)->toHaveKey('access_token');
+    expect($body)->not->toHaveKey('id_token');
 });
