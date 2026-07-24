@@ -122,6 +122,14 @@ it('AC-OIDC-1: userinfo returns sub and scoped claims', function () {
     expect($info->json('name'))->toBe('Ada Lovelace');
 });
 
+it('AC-OIDC-5: /oauth/userinfo rejects a missing or invalid token with 401', function () {
+    // No token at all.
+    $this->getJson('/oauth/userinfo')->assertStatus(401);
+
+    // A syntactically-present but invalid bearer token.
+    $this->withToken('not-a-real-access-token')->getJson('/oauth/userinfo')->assertStatus(401);
+});
+
 it('AC-OIDC-2: the id_token is a JWT with iss, aud, sub, exp', function () {
     $client = oidcClient();
     [$verifier, $challenge] = pkcePair();

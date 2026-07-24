@@ -24,7 +24,11 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // Machine endpoints answer JSON (a 401, not an HTML login redirect) when
+        // unauthenticated. /oauth/userinfo is token-guarded (auth:api); the
+        // browser-facing /oauth/authorize is intentionally excluded so it keeps
+        // redirecting unauthenticated users to login (AC-AUTH-2).
         $exceptions->shouldRenderJsonWhen(
-            fn (Request $request) => $request->is('api/*'),
+            fn (Request $request) => $request->is('api/*') || $request->is('oauth/userinfo'),
         );
     })->create();
