@@ -71,6 +71,11 @@ $token = $config->parser()->parse($idToken);
 $config->validator()->assert($token, new SignedWith($config->signer(), $config->signingKey()));
 ```
 
+Two gotchas that trip up external consumers:
+
+- **JWKS returns a JWK, not a PEM.** `jwks_uri` serves a key as JSON (`kty: RSA`, base64url `n`/`e` — modulus and exponent), *not* a PEM certificate. You must reconstruct the public key from `n`/`e` before verifying (most OIDC libraries do this for you; hand-rolled verifiers must convert JWK → PEM/RSA key, e.g. via `phpseclib` or a JWK library). The `InMemory::plainText($publicKeyFromJwks)` above assumes you already converted it (or fetched the provider's `oauth-public.key` PEM directly).
+- **id_tokens are signed without a `kid` header.** The bridge issues a single-key JWKS and omits the `kid` from both the JWT header and the JWK. Clients that key their verification on `kid` matching must tolerate its absence — fall back to the sole key in the set rather than requiring a `kid` match (firebase/php-jwt, for one, otherwise throws).
+
 ## 6. userinfo
 
 Fetch claims with the access token:
