@@ -30,7 +30,7 @@ php artisan key:generate            # BEFORE setting APP_ENV=production
 #   MAIL_MAILER=smtp, MAIL_SCHEME=smtps, MAIL_HOST=<smtp-host>, MAIL_PORT=465,
 #     MAIL_USERNAME=<mail-user>, MAIL_PASSWORD=..., MAIL_FROM_ADDRESS=<mail-user>
 #   OPENID_FORCE_HTTPS=true
-#   NEXO_ATTRIBUTION_NAME / NEXO_ATTRIBUTION_URL per your instance
+#   NEXO_ATTRIBUTION_LABEL / NEXO_ATTRIBUTION_URL per your instance
 
 # 3. OAuth signing keys — generated ON THE SERVER, never committed
 php artisan passport:keys
