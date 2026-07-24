@@ -103,9 +103,26 @@ return [
         'users' => [
             'provider' => 'users',
             'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
-            'expire' => 60,
+            // Reset link lifetime (minutes). Single source of truth for the
+            // NEXO_PASSWORD_RESET_TTL env; consumed by Laravel's password broker.
+            'expire' => (int) env('NEXO_PASSWORD_RESET_TTL', 60),
             'throttle' => 60,
         ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Email Verification
+    |--------------------------------------------------------------------------
+    |
+    | The expiry time (minutes) of the signed email-verification link. Laravel's
+    | VerifyEmail notification reads auth.verification.expire; wiring it here
+    | makes the NEXO_VERIFICATION_TTL env live (previously dead config).
+    |
+    */
+
+    'verification' => [
+        'expire' => (int) env('NEXO_VERIFICATION_TTL', 60),
     ],
 
     /*

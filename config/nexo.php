@@ -23,8 +23,9 @@ return [
         'min_length' => (int) env('NEXO_PASSWORD_MIN_LENGTH', 8),
     ],
 
-    // Verification and password-reset link lifetimes (minutes).
-    'verification_ttl' => (int) env('NEXO_VERIFICATION_TTL', 60),
-    'password_reset_ttl' => (int) env('NEXO_PASSWORD_RESET_TTL', 60),
+    // Verification and password-reset link lifetimes (minutes) live in
+    // config/auth.php as the single source of truth: auth.verification.expire
+    // (NEXO_VERIFICATION_TTL) and auth.passwords.users.expire
+    // (NEXO_PASSWORD_RESET_TTL), where Laravel's notifications/broker read them.
 
 ];

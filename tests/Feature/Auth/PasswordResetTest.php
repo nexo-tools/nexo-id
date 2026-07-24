@@ -80,6 +80,25 @@ it('AC-PWD-5: rate limits the reset request endpoint', function () {
     $this->post('/forgot-password', ['email' => 'over@example.test'])->assertStatus(429);
 });
 
+it('AC-PWD-7: the reset token expires per the configured ttl (NEXO_PASSWORD_RESET_TTL wiring)', function () {
+    // Low lifetime — set before the broker resolves so it reads this value.
+    config(['auth.passwords.users.expire' => 5]); // minutes
+    $user = User::factory()->create();
+    $token = Password::createToken($user);
+
+    // Travel past the configured lifetime; the (still single-use) token is now stale.
+    $this->travel(6)->minutes();
+
+    $this->from('/reset-password')->post('/reset-password', [
+        'token' => $token,
+        'email' => $user->email,
+        'password' => 'brand-new-secret',
+        'password_confirmation' => 'brand-new-secret',
+    ])->assertSessionHasErrors('email');
+
+    expect(Hash::check('brand-new-secret', $user->fresh()->password))->toBeFalse();
+});
+
 it('AC-PWD-6: notifies the account and revokes other sessions on reset', function () {
     Notification::fake();
     config()->set('session.driver', 'database');
