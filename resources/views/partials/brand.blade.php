@@ -1,7 +1,17 @@
-{{-- Nexo ID mark: two linked nodes on a rounded tile (identity = linked accounts). --}}
-<svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <rect width="32" height="32" rx="8" fill="#10b981"/>
-    <circle cx="11" cy="16" r="4" fill="#052e1a"/>
-    <circle cx="21" cy="16" r="4" fill="#052e1a"/>
-    <rect x="10" y="14.5" width="12" height="3" rx="1.5" fill="#052e1a"/>
+{{-- Nexo ID isotype: a single account node on a rounded violet tile (one
+     identity across the whole ecosystem). From nexo-brand/marks/nexoid.svg.
+     Kept inline so the hero mark stays crisp at any scale; the literal palette
+     hex here is the one place raw color is allowed (NoHardcodedColorsTest). --}}
+<svg width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs>
+        <linearGradient id="nexoIdTile" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#8b5cf6"/>
+            <stop offset="1" stop-color="#7c3aed"/>
+        </linearGradient>
+    </defs>
+    <rect x="2" y="2" width="44" height="44" rx="12" fill="url(#nexoIdTile)"/>
+    <g fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="24" cy="19" r="5"/>
+        <path d="M15 34a9 9 0 0 1 18 0"/>
+    </g>
 </svg>
