@@ -12,21 +12,21 @@
 @endsection
 
 @section('content')
-    <div class="flex flex-1 flex-col justify-center gap-6">
-        <div class="flex items-center gap-3">
+    <div class="flex flex-1 flex-col items-center justify-center gap-6 text-center">
+        <div class="flex items-center justify-center gap-3">
             <span class="scale-150">@include('partials.brand')</span>
         </div>
         <h1 class="text-3xl font-semibold tracking-tight">{{ config('app.name') }}</h1>
         <p class="max-w-prose text-lg text-muted">{{ __('One account for every Nexo tool.') }}</p>
 
         @auth
-            <div class="flex flex-wrap items-center gap-3">
+            <div class="flex flex-wrap items-center justify-center gap-3">
                 <a href="{{ url('/profile') }}"
                    class="inline-flex rounded-lg bg-primary px-4 py-2 font-medium text-primary-fg hover:bg-primary-hover">{{ __('Go to your account') }}</a>
                 <a href="{{ route('help') }}" class="text-sm font-medium text-primary hover:text-primary-hover">{{ __('nexo.help.title') }}</a>
             </div>
         @else
-            <div class="flex flex-wrap items-center gap-3">
+            <div class="flex flex-wrap items-center justify-center gap-3">
                 <a href="{{ url('/login') }}"
                    class="inline-flex rounded-lg bg-primary px-4 py-2 font-medium text-primary-fg hover:bg-primary-hover">{{ __('Sign in') }}</a>
                 <a href="{{ url('/register') }}"
