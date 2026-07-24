@@ -39,6 +39,7 @@ GET {authorization_endpoint}?
 ```
 
 - First-party clients are **consent-free**: if the user has an active, verified Nexo ID session they are redirected straight back with a `code` (silent SSO). Otherwise they log in (or verify their email) first, then return.
+- Non-first-party clients are shown a **consent screen** listing the requested scopes before any `code` is issued (the screen exists today; broader third-party onboarding/polish is a later phase).
 - Always send and check `state` (CSRF protection).
 
 The callback receives `?code=…&state=…`.

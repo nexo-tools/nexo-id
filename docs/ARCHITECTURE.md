@@ -42,6 +42,7 @@ Laravel Passport 13 + `jeremy379/laravel-openid-connect` ([ADR-008](adr/ADR-008-
 - **Endpoints:** `GET /oauth/authorize` (code + PKCE), `POST /oauth/token`, `GET /oauth/userinfo`, `GET /.well-known/openid-configuration`, `GET /oauth/jwks`.
 - **Keys:** RSA keypair in `storage/oauth-*.key` (gitignored; generated per environment via `passport:keys`).
 - **Clients:** `App\Models\OauthClient` overrides `skipsAuthorization()` → first-party (owner-less) clients are consent-free (silent SSO). Registered via the `nexo:sso-client` artisan command (public/PKCE, exact redirect URIs).
+- **Consent screen:** a functional consent view (`resources/views/auth/oauth/authorize.blade.php`, registered via `Passport::authorizationView`) lists requested scopes and is shown to any client that does *not* skip authorization; first-party clients bypass it.
 - **Verified gate:** `config/passport.php` registers `RequireVerifiedForAuthorize` on Passport routes; it redirects unverified users away from `/oauth/authorize` only (pass-through elsewhere).
 - **Claims:** `App\Entities\IdentityEntity` maps scopes→claims (`profile`→name, `email`→email/email_verified); the bridge filters by granted scope. Scopes declared via `Passport::tokensCan(config('openid.passport.tokens_can'))` in `AuthServiceProvider`.
 - **User:** `HasApiTokens` + `OAuthenticatable`; the `api` guard (driver `passport`) protects userinfo.
@@ -49,4 +50,4 @@ Laravel Passport 13 + `jeremy379/laravel-openid-connect` ([ADR-008](adr/ADR-008-
 
 ## Not here yet (later phases)
 
-Production is live (task 2.9, 2026-07-20). Still deferred: backups + uptime monitoring (owner-deferred to a cross-tool ops pass before real users, PLAN Gate 3); Gate 3 (Nexo Short consuming the provider end-to-end); third-party consent UI; back-channel logout; 2FA; "your tools" page.
+Production is live (task 2.9, 2026-07-20). Still deferred: backups + uptime monitoring (owner-deferred to a cross-tool ops pass before real users, PLAN Gate 3); Gate 3 (Nexo Short consuming the provider end-to-end); third-party client onboarding/polish (the consent screen itself already exists — see the SSO provider section); back-channel logout; 2FA; "your tools" page.
