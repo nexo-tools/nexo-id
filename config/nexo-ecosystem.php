@@ -60,7 +60,7 @@ return [
             'tagline' => 'Events, tickets and check-in.',
             'url' => env('NEXO_URL_EVENTS', 'https://nexoevents.alvarocdev.com'),
             'mark' => '/ecosystem/nexoevents.svg',
-            'status' => 'soon',
+            'status' => 'live',
         ],
     ],
 ];
