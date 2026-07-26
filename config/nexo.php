@@ -34,4 +34,18 @@ return [
     // (NEXO_VERIFICATION_TTL) and auth.passwords.users.expire
     // (NEXO_PASSWORD_RESET_TTL), where Laravel's notifications/broker read them.
 
+    // Cookieless ecosystem analytics (opt-in). Off by default so a standalone
+    // install phones nobody home; when enabled, resources/js/nexo-beacon.js
+    // sendBeacon()s an anonymous pageview to the Nexo Tools hub. See the shared
+    // partials/beacon.blade.php (metas rendered only when enabled).
+    'beacon' => [
+        'enabled' => (bool) env('NEXO_BEACON_ENABLED', false),
+
+        // The hub's ingestion endpoint (absolute — this tool is not the hub).
+        'endpoint' => (string) env('NEXO_BEACON_ENDPOINT', 'https://nexotools.alvarocdev.com/beacon'),
+
+        // This tool's slug, sent as the beacon `origin` (the hub allowlists it).
+        'origin' => (string) env('NEXO_BEACON_ORIGIN', 'nexoid'),
+    ],
+
 ];

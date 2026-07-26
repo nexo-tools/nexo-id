@@ -20,6 +20,7 @@
     <link rel="manifest" href="{{ asset('site.webmanifest') }}">
     {{-- Stamp <html data-theme> before the stylesheet loads (no FOUC). --}}
     @include('partials.theme-init')
+    @include('partials.beacon')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="flex min-h-full flex-col bg-bg font-sans text-ink antialiased">

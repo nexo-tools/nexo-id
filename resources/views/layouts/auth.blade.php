@@ -12,6 +12,7 @@
     <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
     {{-- Stamp <html data-theme> before the stylesheet loads (no FOUC). --}}
     @include('partials.theme-init')
+    @include('partials.beacon')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="flex min-h-full flex-col bg-bg px-6 py-12 text-ink antialiased">
