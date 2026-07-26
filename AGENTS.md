@@ -9,11 +9,11 @@ Central identity service (SSO) for the Nexo ecosystem (Nexo Links, Nexo Agenda, 
 
 ## Stack
 
-Laravel 13 + MySQL (ADR-002). Blade + Tailwind v4 (Vite), no Alpine. Pest 4 / Pint / Larastan level 6. Local dev: app runtime via Sail; stateful services (MySQL, Mailpit) come from the **shared dev environment** (`~/dev-environment`, standards repo `templates/dev-environment/`) — database `nexo_id`, standard ports. SSO provider is Passport 13 + `jeremy379/laravel-openid-connect` ([ADR-008](docs/adr/ADR-008-oidc-bridge-correction.md)).
+Laravel 13 + MySQL (ADR-002). Blade + Tailwind v4 (Vite), no Alpine. Pest 4 / Pint / Larastan level 6. Local dev: app runtime via Sail; stateful services (MySQL, Mailpit, phpMyAdmin) come from the **shared dev environment** (`~/dev-environment`, standards repo `templates/dev-environment/`, compose project `nexo` since 2026-07-26) — database `nexo_id`, MySQL on host port 3307 (defaults like 3306 belong to the unrelated `work` stack). SSO provider is Passport 13 + `jeremy379/laravel-openid-connect` ([ADR-008](docs/adr/ADR-008-oidc-bridge-correction.md)).
 
 ## How to run it
 
-No local PHP/Composer — everything via Docker (like the siblings). Stateful services are shared across projects (`~/dev-environment`): MySQL `:3306` (db `nexo_id`, user/pass `dev`/`dev`), Mailpit SMTP `:1025` / UI `:8025`. This repo's `compose.yaml` runs only the app runtime and reaches them via `host.docker.internal`.
+No local PHP/Composer — everything via Docker (like the siblings). Stateful services are shared across projects (`~/dev-environment`, compose project `nexo`): MySQL `:3307` (db `nexo_id`, user/pass `dev`/`dev`), Mailpit SMTP `:1025` / UI `:8025`, phpMyAdmin `:8306`. This repo's `compose.yaml` runs only the app runtime and reaches them via `host.docker.internal`.
 
 ```bash
 cd ~/dev-environment && docker compose up -d mysql mailpit   # shared services first

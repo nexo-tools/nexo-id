@@ -1,6 +1,7 @@
-# App runtime only. Stateful services (MySQL, Mailpit) live in the shared
-# dev environment (~/dev-environment, standard ports 3306/1025/8025);
-# this app reaches them via host.docker.internal. See AGENTS.md.
+# App runtime only. Stateful services (MySQL, Mailpit, phpMyAdmin) live in the
+# shared dev environment (~/dev-environment, compose project `nexo`: MySQL 3307,
+# Mailpit 1025/8025, phpMyAdmin 8306); this app reaches them via
+# host.docker.internal. See AGENTS.md.
 services:
     laravel.test:
         build:
