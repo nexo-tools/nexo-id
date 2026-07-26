@@ -23,7 +23,7 @@ function pkce(): array
     return [$verifier, $challenge];
 }
 
-function authorizeUrl(string $clientId, string $redirect, string $challenge, string $scope = 'openid profile email'): string
+function authorizeUrl(string $clientId, string $redirect, string $challenge, string $scope = 'openid profile email', array $extra = []): string
 {
     return '/oauth/authorize?'.http_build_query([
         'client_id' => $clientId,
@@ -33,6 +33,7 @@ function authorizeUrl(string $clientId, string $redirect, string $challenge, str
         'state' => 'xyz-state',
         'code_challenge' => $challenge,
         'code_challenge_method' => 'S256',
+        ...$extra,
     ]);
 }
 
@@ -167,6 +168,66 @@ it('AC-RATE-1: throttles /oauth/authorize per IP with 429', function () {
     }
 
     $this->get($url)->assertStatus(429);
+});
+
+// Silent SSO (OIDC prompt=none): the authorize endpoint must answer without
+// rendering ANY UI — a code when a usable session exists, an OIDC error
+// redirect back to the client otherwise. Consumed by the nexo-sso-client
+// template's NexoSsoSilentLogin middleware (standards repo).
+
+it('AC-PROMPT-NONE-1: prompt=none without a session returns error=login_required to the client, no login UI', function () {
+    $client = ssoClient();
+    [, $challenge] = pkce();
+
+    $response = $this->get(authorizeUrl($client->getKey(), 'https://client.test/callback', $challenge, extra: ['prompt' => 'none']));
+
+    $response->assertRedirect();
+    $location = (string) $response->headers->get('Location');
+    expect($location)->toStartWith('https://client.test/callback?');
+    expect($location)->toContain('error=login_required');
+    expect($location)->toContain('state=xyz-state');
+    expect($location)->not->toContain('code=');
+});
+
+it('AC-PROMPT-NONE-2: prompt=none with a verified session silently issues the code', function () {
+    $client = ssoClient();
+    [, $challenge] = pkce();
+    $user = User::factory()->create(); // verified
+
+    $response = $this->actingAs($user)
+        ->get(authorizeUrl($client->getKey(), 'https://client.test/callback', $challenge, extra: ['prompt' => 'none']));
+
+    $response->assertRedirect();
+    $location = (string) $response->headers->get('Location');
+    expect($location)->toStartWith('https://client.test/callback?');
+    expect($location)->toContain('code=');
+    expect($location)->toContain('state=xyz-state');
+});
+
+it('AC-PROMPT-NONE-3: prompt=none with an unverified session returns error=interaction_required, not the verification notice', function () {
+    $client = ssoClient();
+    [, $challenge] = pkce();
+    $user = User::factory()->unverified()->create();
+
+    $response = $this->actingAs($user)
+        ->get(authorizeUrl($client->getKey(), 'https://client.test/callback', $challenge, extra: ['prompt' => 'none']));
+
+    $response->assertRedirect();
+    $location = (string) $response->headers->get('Location');
+    expect($location)->toStartWith('https://client.test/callback?');
+    expect($location)->toContain('error=interaction_required');
+    expect($location)->toContain('state=xyz-state');
+    expect($location)->not->toContain('code=');
+});
+
+it('AC-PROMPT-NONE-3: an unverified prompt=none with an unregistered redirect_uri falls back to the verification notice (no open redirect)', function () {
+    $client = ssoClient(['https://client.test/callback']);
+    [, $challenge] = pkce();
+    $user = User::factory()->unverified()->create();
+
+    $this->actingAs($user)
+        ->get(authorizeUrl($client->getKey(), 'https://client.test/evil', $challenge, extra: ['prompt' => 'none']))
+        ->assertRedirect(route('verification.notice'));
 });
 
 it('AC-CLIENT-2: rejects a redirect_uri that is not registered exactly', function () {
