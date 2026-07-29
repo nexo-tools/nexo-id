@@ -12,7 +12,7 @@ Self-hostable, standards-based, no external requests.
 ![PHP 8.3+](https://img.shields.io/badge/PHP-8.3%2B-777bb4.svg)
 ![Laravel 13](https://img.shields.io/badge/Laravel-13-ff2d20.svg)
 
-[Live instance](https://nexoid.alvarocdev.com) ·
+[**Live demo**](https://nexoid.alvarocdev.com) ·
 [Integration guide](docs/INTEGRATION.md) ·
 [Deployment guide](DEPLOYMENT.md) ·
 [Scope](docs/SCOPE.md)
@@ -52,6 +52,16 @@ instance or run your own. It is **live in production at
 - **Multilingual** — English, Spanish and Portuguese (`en`/`es`/`pt`) with a
   translatable `/help` center.
 
+## Screenshots
+
+Captured from the live instance.
+
+| Light | Dark |
+| --- | --- |
+| <img src="docs/screenshots/login-light.png" alt="Nexo ID sign-in in light theme"> | <img src="docs/screenshots/login-dark.png" alt="Nexo ID sign-in in dark theme"> |
+
+See it for real at the [live demo](https://nexoid.alvarocdev.com).
+
 ## Tech stack
 
 PHP 8.3+ · Laravel 13 · Blade + Alpine.js + Tailwind CSS (Vite) · MySQL
@@ -62,50 +72,16 @@ Quality: [Pest](https://pestphp.com) · [Pint](https://laravel.com/docs/pint) ·
 [Larastan](https://github.com/larastan/larastan) · GitHub Actions CI.
 Zero external runtime requests — system font stack, no CDNs.
 
-## Quick start (local)
-
-Requirements: Docker — everything else runs in containers via
-[Laravel Sail](https://laravel.com/docs/sail).
-
-```bash
-git clone https://github.com/nexo-tools/nexo-id.git
-cd nexo-id
-cp .env.example .env
-docker run --rm -v "$(pwd):/app" -w /app composer:latest composer install
-./vendor/bin/sail up -d
-./vendor/bin/sail artisan key:generate
-./vendor/bin/sail artisan migrate
-./vendor/bin/sail npm install && ./vendor/bin/sail npm run build
-```
-
-Open [http://localhost](http://localhost). Local email inbox (Mailpit):
-[http://localhost:8025](http://localhost:8025). To generate the OAuth signing keys and
-register your first client application, follow the
-**[integration guide](docs/INTEGRATION.md)**.
-
 ## Self-hosting
 
-Nexo ID is a standard Laravel app — run your own identity provider on your own domain.
-See **[DEPLOYMENT.md](DEPLOYMENT.md)** to deploy, and the
-**[integration guide](docs/INTEGRATION.md)** to connect tools. Key configuration
-(see `.env.example`):
+A standard Laravel app: PHP 8.3+, MySQL, and anything from cheap shared hosting to a
+VPS. Multi-instance by design — run your own identity provider for your own ecosystem
+instead of depending on someone else's.
 
-| Env var | Purpose | Default |
-| --- | --- | --- |
-| `NEXO_ATTRIBUTION_LABEL` | "Powered by" label in the shared footer | `made with Nexo ID` |
-| `NEXO_ATTRIBUTION_URL` | Footer link target | `https://alvarocdev.com` |
-| `NEXO_SUPPORT_EMAIL` | Contact address on the `/help` center | unset |
-| `NEXO_SUPPORT_URL` | Support URL (wins over the mailto when set) | unset |
-| `NEXO_PASSWORD_MIN_LENGTH` | Minimum account password length | `8` |
-
-## Status
-
-**Phases 1 & 2 complete — live at [nexoid.alvarocdev.com](https://nexoid.alvarocdev.com).**
-The SSO provider is running: OAuth 2.0 + PKCE / OIDC (authorize, token, `id_token`,
-userinfo, discovery, JWKS), silent SSO, central logout, plus accounts, email
-verification and session management. Phase 3 (a reusable OIDC client pattern, Nexo
-Short as the first consumer, and ops hardening) is nearly complete: the client
-template ships and Nexo Short runs SSO-only against this provider in production.
+**[DEPLOYMENT.md](DEPLOYMENT.md)** has the real steps: running it locally, the
+environment reference and the production deploy (Passport keys, forced HTTPS, the
+OIDC specifics). Integrating a client is documented in
+[docs/INTEGRATION.md](docs/INTEGRATION.md) and [SPEC-client.md](SPEC-client.md).
 
 ## Documentation
 
@@ -116,19 +92,18 @@ template ships and Nexo Short runs SSO-only against this provider in production.
 
 ## Nexo ecosystem
 
-Nexo is a family of open-source, self-hostable tools that share one visual identity
-([nexo-brand](https://github.com/nexo-tools)), one optional account
-([Nexo ID](https://github.com/nexo-tools/nexo-id) SSO) and one set of engineering
-standards. Every tool runs **fully standalone** — the ecosystem is opt-in.
+Nexo is a family of open-source, self-hostable tools that share one visual identity,
+one optional account ([Nexo ID](https://github.com/nexo-tools/nexo-id) SSO) and one set of
+engineering standards. Every tool runs **fully standalone** — the ecosystem is opt-in.
 
-| Tool | What it is | Repo |
-| --- | --- | --- |
-| **Nexo Tools** | Ecosystem hub — discover the tools and hop between them with one account | [nexo-tools](https://github.com/nexo-tools/nexo-tools) |
-| **Nexo Links** | Link-in-bio you host yourself (Linktree alternative) | [nexo-links](https://github.com/nexo-tools/nexo-links) |
-| **Nexo Agenda** | Bookings for service businesses (AgendaPro / Fresha / Booksy alternative) | [nexo-agenda](https://github.com/nexo-tools/nexo-agenda) |
-| **Nexo Short** | Self-hosted URL shortener | [nexo-short](https://github.com/nexo-tools/nexo-short) |
-| **Nexo Events** | Event tickets and passes | [nexo-events](https://github.com/nexo-tools/nexo-events) |
-| **Nexo ID** | One account for every tool — OAuth 2.0 / OIDC SSO | — you are here |
+| Tool | What it is | Live | Repo |
+| --- | --- | --- | --- |
+| **Nexo Tools** | Ecosystem hub — discover the tools and hop between them with one account | [nexotools.alvarocdev.com](https://nexotools.alvarocdev.com) | [nexo-tools](https://github.com/nexo-tools/nexo-tools) |
+| **Nexo ID** | One account for every tool — OAuth 2.0 / OIDC SSO | [nexoid.alvarocdev.com](https://nexoid.alvarocdev.com) | — you are here |
+| **Nexo Links** | Link-in-bio you host yourself (Linktree alternative) | [nexolinks.alvarocdev.com](https://nexolinks.alvarocdev.com) | [nexo-links](https://github.com/nexo-tools/nexo-links) |
+| **Nexo Agenda** | Bookings for service businesses (Fresha / Booksy alternative) | [nexoagenda.alvarocdev.com](https://nexoagenda.alvarocdev.com) | [nexo-agenda](https://github.com/nexo-tools/nexo-agenda) |
+| **Nexo Short** | URL shortener with private, cookieless stats | [nexoshort.alvarocdev.com](https://nexoshort.alvarocdev.com) | [nexo-short](https://github.com/nexo-tools/nexo-short) |
+| **Nexo Events** | Event tickets, passes and QR check-in | [nexoevents.alvarocdev.com](https://nexoevents.alvarocdev.com) | [nexo-events](https://github.com/nexo-tools/nexo-events) |
 
 New to Nexo? Start at **[nexotools.alvarocdev.com](https://nexotools.alvarocdev.com)**.
 Built by **[alvarocdev.com](https://alvarocdev.com)** — the tech behind Nexo.
@@ -136,3 +111,9 @@ Built by **[alvarocdev.com](https://alvarocdev.com)** — the tech behind Nexo.
 ## License
 
 MIT License © [Alvaro Carrizales](https://alvarocdev.com) — the tech behind Nexo.
+
+---
+
+Status: **live** at [nexoid.alvarocdev.com](https://nexoid.alvarocdev.com) — OAuth 2.0 + PKCE /
+OIDC (authorize, token, `id_token`, userinfo, discovery, JWKS), silent SSO and central logout,
+with five sibling tools authenticating against it in production.
