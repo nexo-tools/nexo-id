@@ -23,4 +23,11 @@
     <a href="{{ $eco['github_org_url'] ?? 'https://github.com/nexo-tools' }}" rel="noopener">
         {{ __('nexo.footer.source') }}
     </a>
+
+    {{-- Local addition to the shared component: this tool is the identity provider
+         for the whole ecosystem — it holds the email, the password hash and the
+         sessions of every account — so the legal pages are reachable from anywhere,
+         the sign-in and consent screens included. --}}
+    <a href="{{ route('legal.privacy') }}">{{ __('Privacy') }}</a>
+    <a href="{{ route('legal.terms') }}">{{ __('Terms') }}</a>
 </footer>

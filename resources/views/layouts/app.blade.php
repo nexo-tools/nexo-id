@@ -1,27 +1,7 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="referrer" content="strict-origin-when-cross-origin">
-    {{-- A page may own its whole SEO head (title + meta) via the `seo` section
-         (the shared <x-nexo-seo> component, which emits its own <title>); otherwise
-         the layout emits the plain title and lets the page add meta via head-meta. --}}
-    @hasSection('seo')
-        @yield('seo')
-    @else
-        <title>@yield('title', config('app.name'))</title>
-    @endif
-    @yield('head-meta')
-    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="48x48">
-    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
-    <link rel="manifest" href="{{ asset('site.webmanifest') }}">
-    {{-- Stamp <html data-theme> before the stylesheet loads (no FOUC). --}}
-    @include('partials.theme-init')
-    @include('partials.beacon')
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @include('partials.head')
 </head>
 <body class="flex min-h-full flex-col bg-bg font-sans text-ink antialiased">
     <x-nexo-header brand="Nexo ID" mark="/ecosystem/nexoid.svg" :home="url('/')">

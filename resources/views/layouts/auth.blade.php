@@ -35,5 +35,10 @@
             @yield('content')
         </div>
     </main>
+
+    {{-- The app-switcher is omitted above to keep the flow focused, but the footer
+         stays: the consent screen is exactly where someone decides whether to hand
+         an account over, so privacy and terms must be one click away. --}}
+    <x-nexo-footer />
 </body>
 </html>

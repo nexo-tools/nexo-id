@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\HelpController;
+use App\Http\Controllers\LegalController;
 use App\Http\Controllers\Oidc\EndSessionController;
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\ProfileController;
@@ -20,6 +21,17 @@ Route::view('/', 'home')->name('home');
 // public block so it can never be shadowed). Uses layouts.app + the Nexo chrome.
 Route::get('/help', HelpController::class)->name('help');
 
+// Legal pages. This tool is the identity provider: it holds the email, the
+// password hash, the sessions and the tool authorizations of every ecosystem
+// account, so privacy + terms are not optional here.
+//
+// Paths are Spanish (the ecosystem is Spanish-first); the ROUTE NAMES are not —
+// `legal.privacy` / `legal.terms` are what the footer, the sitemap and the
+// StaticPagesTest guardian reference across every tool. Public on purpose: they
+// must be readable while logged out and indexable.
+Route::get('/privacidad', [LegalController::class, 'privacy'])->name('legal.privacy');
+Route::get('/terminos', [LegalController::class, 'terms'])->name('legal.terms');
+
 // OIDC RP-initiated (front-channel) logout. Lives in web.php (not oidc.php) so it
 // runs inside the session middleware and can end the browser session; the route
 // NAME is what the discovery controller advertises as end_session_endpoint. It
@@ -28,9 +40,13 @@ Route::get('/help', HelpController::class)->name('help');
 Route::get('/oauth/logout', EndSessionController::class)->name('openid.end_session_endpoint');
 
 Route::get('/sitemap.xml', function () {
+    // Every public, indexable page. The auth and OAuth surface is disallowed in
+    // robots.txt and must never be listed here.
+    $urls = [url('/'), route('help'), route('legal.privacy'), route('legal.terms')];
+
     $xml = cache()->remember('sitemap', now()->addHour(), fn (): string => '<?xml version="1.0" encoding="UTF-8"?>'
         .'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
-        .'<url><loc>'.e(url('/')).'</loc></url>'
+        .implode('', array_map(fn (string $url): string => '<url><loc>'.e($url).'</loc></url>', $urls))
         .'</urlset>');
 
     return response($xml, 200, ['Content-Type' => 'application/xml']);

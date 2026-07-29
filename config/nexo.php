@@ -23,6 +23,14 @@ return [
     'support_url' => env('NEXO_SUPPORT_URL', ''),
     'support_email' => env('NEXO_SUPPORT_EMAIL', ''),
 
+    // Who runs THIS instance, shown on /privacidad and /terminos. Empty by
+    // default (the section is then omitted) so a self-host never publishes the
+    // upstream author as the data controller of its own installation.
+    'legal' => [
+        'operator' => env('NEXO_LEGAL_OPERATOR', ''),
+        'contact' => env('NEXO_LEGAL_CONTACT', ''),
+    ],
+
     // Password policy (see SPEC AC-REG-3). Kept in config so it is testable and
     // adjustable per instance without touching validation code.
     'password' => [
