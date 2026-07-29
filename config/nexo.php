@@ -14,7 +14,7 @@ return [
     //   NEXO_ATTRIBUTION_URL="https://alvarocdev.com/?utm_source=nexo-id&utm_medium=powered-by"
     'attribution' => [
         'label' => env('NEXO_ATTRIBUTION_LABEL', 'made with Nexo ID'),
-        'url' => env('NEXO_ATTRIBUTION_URL', 'https://alvarocdev.com'),
+        'url' => env('NEXO_ATTRIBUTION_URL'),
     ],
 
     // Help-center contact target (instance-configurable). A support form URL wins;
