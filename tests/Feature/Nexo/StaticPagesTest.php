@@ -103,3 +103,18 @@ it('names the claims a tool receives, in every locale', function () {
         }
     }
 });
+
+it('names the instance operator on the legal pages when configured', function () {
+    // The env-driven operator/contact contract (templates/nexo-ui/pages): with
+    // the values set, the pages must say who answers for this instance. One
+    // tool shipped legal pages that never consumed these values while the
+    // deploy pipeline delivered them — a no-op that read as done. Asserting the
+    // rendered output is what catches that class of gap.
+    config()->set('nexo.legal.operator', 'Example Operator');
+    config()->set('nexo.legal.contact', 'legal@example.test');
+
+    $html = $this->get(route('legal.privacy'))->assertOk()->getContent();
+
+    expect(str_contains($html, 'Example Operator'))->toBeTrue('The operator section did not render.');
+    expect(str_contains($html, 'legal@example.test'))->toBeTrue('The contact did not render.');
+});
