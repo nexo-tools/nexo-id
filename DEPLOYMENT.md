@@ -4,6 +4,38 @@ Nexo ID runs on Laravel 13 + MySQL on shared hosting (tested on Hostinger + Lite
 
 Assumptions: SSH on the host and port your panel shows (on Hostinger both live under hPanel → Advanced → SSH Access — a non-default port, and the exact host from that panel, not the domain's A-record). PHP 8.x + Composer over SSH; **no Node on the server** — assets are built locally/CI and uploaded.
 
+## Running it locally
+
+Before deploying anywhere, this is how to get Nexo ID up on your own machine. The README
+points here on purpose: keeping the steps in one place is why they stopped drifting.
+
+### Option A — everything in Docker
+
+`compose.yaml` in this repo runs the **app only**: the author's machine keeps a single
+MySQL/Mailpit shared by every Nexo tool. This tool's `.env.example` defaults to **SQLite**,
+so nothing else is needed to boot it.
+
+```sh
+cp .env.example .env
+docker compose up -d
+docker compose exec laravel.test composer install
+docker compose exec laravel.test php artisan key:generate
+docker compose exec laravel.test php artisan migrate
+npm install && npm run build
+```
+
+The app answers on **http://localhost:8100**.
+
+### Option B — MySQL
+
+Production runs on MySQL (see below). To mirror it locally, set `DB_CONNECTION=mysql` plus
+`DB_HOST` / `DB_PORT` / `DB_DATABASE` / `DB_USERNAME` / `DB_PASSWORD` in `.env` and point them
+at your own server.
+
+Run the suite with `vendor/bin/pest` (SQLite in memory — it never touches your database).
+
+---
+
 ## One-time: hosting panel
 
 1. **Subdomain** — create `<nexoid-host>` (document root will be replaced by a symlink).
