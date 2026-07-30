@@ -40,7 +40,11 @@
 @if ($noindex)
     <meta name="robots" content="noindex, nofollow">
 @endif
-<meta name="theme-color" content="#7c3aed">
+{{-- Match the page background per scheme, not the accent: the browser chrome
+     should extend the page, not paint a violet bar over a dark UI.
+     Values are --nexo-bg (slate-50 / slate-950); literals because <meta> can't read CSS vars. --}}
+<meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#020617" media="(prefers-color-scheme: dark)">
 
 <meta property="og:type" content="{{ $type }}">
 <meta property="og:site_name" content="{{ $siteName }}">
