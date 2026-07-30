@@ -54,6 +54,9 @@
     --color-subtle: var(--nexo-text-subtle);
     --color-line: var(--nexo-border);
     --color-line-strong: var(--nexo-border-strong);
+    /* border-control is the input/checkbox border: WCAG 1.4.11 asks 3:1 for the
+       boundary of a control, which the decorative border-line does not clear. */
+    --color-control: var(--nexo-border-control);
     --color-ring: var(--nexo-ring);
 
     /* Status accents (success/danger) for pills, alerts and destructive links. */

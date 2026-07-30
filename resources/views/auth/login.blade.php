@@ -15,7 +15,7 @@
         <x-field name="password" type="password" :label="__('Password')" autocomplete="current-password" />
 
         <label class="mb-4 flex items-center gap-2 text-sm text-muted">
-            <input type="checkbox" name="remember" class="rounded border-line bg-bg">
+            <input type="checkbox" name="remember" class="rounded border-control bg-bg accent-primary">
             {{ __('Remember me') }}
         </label>
 

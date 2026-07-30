@@ -24,9 +24,9 @@
                 @method('PATCH')
                 <x-field name="display_name" :label="__('Display name')" :value="$user->display_name" autocomplete="name" />
                 <div class="mb-4">
-                    <label class="mb-1 block text-sm text-muted">{{ __('Email') }}</label>
-                    <input type="email" value="{{ $user->email }}" disabled
-                           class="w-full rounded-lg border border-line bg-surface-sunken px-3 py-2 text-subtle">
+                    <label for="profile-email" class="mb-1 block text-sm text-muted">{{ __('Email') }}</label>
+                    <input type="email" id="profile-email" value="{{ $user->email }}" disabled
+                           class="w-full rounded-lg border border-control bg-surface-sunken px-3 py-2 text-muted">
                 </div>
                 <button type="submit"
                         class="rounded-lg bg-primary px-4 py-2 font-medium text-primary-fg hover:bg-primary-hover">{{ __('Save') }}</button>
