@@ -17,7 +17,7 @@
     <form method="POST" action="{{ route('verification.send') }}" class="mt-6">
         @csrf
         <button type="submit"
-                class="w-full rounded-lg border border-line px-4 py-2 font-medium text-ink hover:bg-bg-subtle">
+                class="nexo-btn nexo-btn--ghost w-full">
             {{ __('Resend verification email') }}
         </button>
     </form>

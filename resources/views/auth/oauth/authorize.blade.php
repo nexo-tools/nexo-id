@@ -26,7 +26,7 @@
             <input type="hidden" name="client_id" value="{{ $client->getKey() }}">
             <input type="hidden" name="auth_token" value="{{ $authToken }}">
             <button type="submit"
-                    class="w-full rounded-lg bg-primary px-4 py-2 font-medium text-primary-fg hover:bg-primary-hover">{{ __('Authorize') }}</button>
+                    class="nexo-btn nexo-btn--primary w-full">{{ __('Authorize') }}</button>
         </form>
 
         <form method="POST" action="{{ route('passport.authorizations.deny') }}" class="flex-1">
@@ -36,7 +36,7 @@
             <input type="hidden" name="client_id" value="{{ $client->getKey() }}">
             <input type="hidden" name="auth_token" value="{{ $authToken }}">
             <button type="submit"
-                    class="w-full rounded-lg border border-line px-4 py-2 font-medium text-ink hover:bg-bg-subtle">{{ __('Cancel') }}</button>
+                    class="nexo-btn nexo-btn--ghost w-full">{{ __('Cancel') }}</button>
         </form>
     </div>
 @endsection

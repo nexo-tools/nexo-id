@@ -20,7 +20,7 @@
         </label>
 
         <button type="submit"
-                class="w-full rounded-lg bg-primary px-4 py-2 font-medium text-primary-fg hover:bg-primary-hover">
+                class="nexo-btn nexo-btn--primary w-full">
             {{ __('Sign in') }}
         </button>
     </form>

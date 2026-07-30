@@ -29,7 +29,7 @@
                            class="w-full rounded-lg border border-control bg-surface-sunken px-3 py-2 text-muted">
                 </div>
                 <button type="submit"
-                        class="rounded-lg bg-primary px-4 py-2 font-medium text-primary-fg hover:bg-primary-hover">{{ __('Save') }}</button>
+                        class="nexo-btn nexo-btn--primary">{{ __('Save') }}</button>
             </form>
         </section>
 
@@ -43,7 +43,7 @@
                 <x-field name="password" type="password" :label="__('New password')" autocomplete="new-password" />
                 <x-field name="password_confirmation" type="password" :label="__('Confirm password')" autocomplete="new-password" />
                 <button type="submit"
-                        class="rounded-lg bg-primary px-4 py-2 font-medium text-primary-fg hover:bg-primary-hover">{{ __('Update password') }}</button>
+                        class="nexo-btn nexo-btn--primary">{{ __('Update password') }}</button>
             </form>
         </section>
 

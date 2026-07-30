@@ -18,15 +18,15 @@
         @auth
             <div class="flex flex-wrap items-center justify-center gap-3">
                 <a href="{{ url('/profile') }}"
-                   class="inline-flex rounded-lg bg-primary px-4 py-2 font-medium text-primary-fg hover:bg-primary-hover">{{ __('Go to your account') }}</a>
+                   class="nexo-btn nexo-btn--primary">{{ __('Go to your account') }}</a>
                 <a href="{{ route('help') }}" class="text-sm font-medium text-primary hover:text-primary-hover">{{ __('nexo.help.title') }}</a>
             </div>
         @else
             <div class="flex flex-wrap items-center justify-center gap-3">
                 <a href="{{ url('/login') }}"
-                   class="inline-flex rounded-lg bg-primary px-4 py-2 font-medium text-primary-fg hover:bg-primary-hover">{{ __('Sign in') }}</a>
+                   class="nexo-btn nexo-btn--primary">{{ __('Sign in') }}</a>
                 <a href="{{ url('/register') }}"
-                   class="inline-flex rounded-lg border border-line px-4 py-2 font-medium text-ink hover:bg-bg-subtle">{{ __('Create account') }}</a>
+                   class="nexo-btn nexo-btn--ghost">{{ __('Create account') }}</a>
                 <a href="{{ route('help') }}" class="text-sm font-medium text-primary hover:text-primary-hover">{{ __('nexo.help.title') }}</a>
             </div>
         @endauth
