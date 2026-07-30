@@ -50,7 +50,7 @@ return [
         ],
         'nexoshort' => [
             'name' => 'Nexo Short',
-            'tagline' => 'Acortá enlaces con métricas sin cookies.',
+            'tagline' => 'Acorta enlaces con métricas sin cookies.',
             'url' => env('NEXO_URL_SHORT', 'https://nexoshort.alvarocdev.com'),
             'mark' => '/ecosystem/nexoshort.svg',
             'status' => 'live',
