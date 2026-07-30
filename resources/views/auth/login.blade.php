@@ -5,7 +5,7 @@
 
 @section('content')
     @if (session('status'))
-        <p class="mb-4 rounded-lg bg-success-subtle px-3 py-2 text-sm text-success-subtle-fg">{{ session('status') }}</p>
+        <p class="nexo-flash mb-4" role="status">{{ session('status') }}</p>
     @endif
 
     <form method="POST" action="{{ url('/login') }}">

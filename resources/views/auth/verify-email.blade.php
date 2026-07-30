@@ -9,7 +9,7 @@
     </p>
 
     @if (session('status') === 'verification-link-sent')
-        <p class="mt-4 rounded-lg bg-success-subtle px-3 py-2 text-sm text-success-subtle-fg">
+        <p class="nexo-flash mt-4" role="status">
             {{ __('A new verification link has been sent to your email.') }}
         </p>
     @endif

@@ -13,7 +13,7 @@
         </div>
 
         @if (session('status'))
-            <p class="rounded-lg bg-success-subtle px-3 py-2 text-sm text-success-subtle-fg">{{ session('status') }}</p>
+            <p class="nexo-flash" role="status">{{ session('status') }}</p>
         @endif
 
         {{-- Profile information (AC-PROFILE-1) --}}
@@ -52,7 +52,11 @@
             <div class="mb-4 flex items-center justify-between">
                 <h2 class="text-lg font-medium">{{ __('Active sessions') }}</h2>
                 @if ($sessions->count() > 1)
-                    <form method="POST" action="{{ route('sessions.destroy-others') }}">
+                    {{-- Alpine, not an inline onsubmit: the CSP has no 'unsafe-hashes',
+                         so an on* attribute would be dropped and the guard would
+                         silently never run. --}}
+                    <form method="POST" action="{{ route('sessions.destroy-others') }}"
+                          x-data @submit="if (! confirm(@js(__('Sign out of every other session? Any device still signed in will have to sign in again.')))) $event.preventDefault()">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="text-sm text-danger hover:underline">{{ __('Sign out all other sessions') }}</button>
@@ -70,8 +74,8 @@
                                     <span class="ml-2 rounded bg-success-subtle px-2 py-0.5 text-xs text-success-subtle-fg">{{ __('This device') }}</span>
                                 @endif
                             </p>
-                            <p class="text-subtle">{{ \Illuminate\Support\Str::limit($session->userAgent ?? __('Unknown device'), 60) }}</p>
-                            <p class="text-subtle">{{ __('Last active :time', ['time' => $session->lastActive->diffForHumans()]) }}</p>
+                            <p class="text-muted">{{ \Illuminate\Support\Str::limit($session->userAgent ?? __('Unknown device'), 60) }}</p>
+                            <p class="text-muted">{{ __('Last active :time', ['time' => $session->lastActive->diffForHumans()]) }}</p>
                         </div>
                         @unless ($session->isCurrent)
                             <form method="POST" action="{{ route('sessions.destroy', $session->id) }}">
@@ -82,7 +86,7 @@
                         @endunless
                     </li>
                 @empty
-                    <li class="text-sm text-subtle">{{ __('No other active sessions.') }}</li>
+                    <li class="text-sm text-muted">{{ __('No other active sessions.') }}</li>
                 @endforelse
             </ul>
         </section>

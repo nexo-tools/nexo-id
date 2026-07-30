@@ -7,7 +7,7 @@
 @section('content')
     <article class="flex flex-col">
         <h1 class="text-2xl font-semibold">{{ $content['title'] }}</h1>
-        <p class="mt-1 text-xs text-subtle">{{ $updated }}</p>
+        <p class="mt-1 text-xs text-muted">{{ $updated }}</p>
 
         <p class="mt-6 leading-relaxed text-ink">{{ $content['intro'] }}</p>
 
