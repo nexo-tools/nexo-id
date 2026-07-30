@@ -36,14 +36,14 @@ return [
         ],
         'nexolinks' => [
             'name' => 'Nexo Links',
-            'tagline' => 'Compartí todos tus links en un solo lugar.',
+            'tagline' => 'Comparte todos tus links en un solo lugar.',
             'url' => env('NEXO_URL_LINKS', 'https://nexolinks.alvarocdev.com'),
             'mark' => '/ecosystem/nexolinks.svg',
             'status' => 'live',
         ],
         'nexoagenda' => [
             'name' => 'Nexo Agenda',
-            'tagline' => 'Recibí reservas para tu negocio en minutos.',
+            'tagline' => 'Recibe reservas para tu negocio en minutos.',
             'url' => env('NEXO_URL_AGENDA', 'https://nexoagenda.alvarocdev.com'),
             'mark' => '/ecosystem/nexoagenda.svg',
             'status' => 'live',
@@ -57,7 +57,7 @@ return [
         ],
         'nexoevents' => [
             'name' => 'Nexo Events',
-            'tagline' => 'Creá eventos gratis y validá entradas con QR.',
+            'tagline' => 'Crea eventos gratis y valida entradas con QR.',
             'url' => env('NEXO_URL_EVENTS', 'https://nexoevents.alvarocdev.com'),
             'mark' => '/ecosystem/nexoevents.svg',
             'status' => 'live',

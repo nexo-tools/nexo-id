@@ -14,7 +14,7 @@ return [
     'operator' => [
         'h' => 'Quién opera esta instancia',
         'p' => 'Esta instancia la opera :operator.',
-        'contact' => 'Podés escribir a :contact.',
+        'contact' => 'Puedes escribir a :contact.',
     ],
 
     'privacy' => [
@@ -27,27 +27,27 @@ return [
             ],
             [
                 'h' => 'Verificación del correo',
-                'p' => 'Al registrarte te enviamos un enlace firmado y con caducidad. Hasta que lo confirmes no podés entrar a tu perfil ni autorizar a ninguna herramienta a usar tu cuenta: la verificación es lo que hace que tu identidad valga en el resto del ecosistema.',
+                'p' => 'Al registrarte te enviamos un enlace firmado y con caducidad. Hasta que lo confirmes no puedes entrar a tu perfil ni autorizar a ninguna herramienta a usar tu cuenta: la verificación es lo que hace que tu identidad valga en el resto del ecosistema.',
             ],
             [
                 'h' => 'Tus sesiones',
-                'p' => 'De cada inicio de sesión guardamos un identificador de sesión, la dirección IP y el navegador desde el que entraste, y la fecha de la última actividad. Podés verlas todas en «Tu cuenta» y cerrar cualquiera de ellas, o todas las demás a la vez. Existen para que reconozcas un acceso que no sea tuyo, y se borran al cerrar sesión o al caducar.',
+                'p' => 'De cada inicio de sesión guardamos un identificador de sesión, la dirección IP y el navegador desde el que entraste, y la fecha de la última actividad. Puedes verlas todas en «Tu cuenta» y cerrar cualquiera de ellas, o todas las demás a la vez. Existen para que reconozcas un acceso que no sea tuyo, y se borran al cerrar sesión o al caducar.',
             ],
             [
-                'h' => 'Qué recibe una herramienta cuando la autorizás',
-                'p' => 'Cuando entrás a una herramienta Nexo con tu cuenta, esa herramienta recibe únicamente los datos del permiso que le corresponde: siempre un identificador de tu cuenta (el campo «sub»), y —si pide el permiso de perfil o el de correo— tu nombre visible («name»), tu correo electrónico («email») y si está verificado o no («email_verified»). Nunca recibe tu contraseña, tus sesiones, tu dirección IP ni la lista de las otras herramientas que usás.',
+                'h' => 'Qué recibe una herramienta cuando la autorizas',
+                'p' => 'Cuando entras a una herramienta Nexo con tu cuenta, esa herramienta recibe únicamente los datos del permiso que le corresponde: siempre un identificador de tu cuenta (el campo «sub»), y —si pide el permiso de perfil o el de correo— tu nombre visible («name»), tu correo electrónico («email») y si está verificado o no («email_verified»). Nunca recibe tu contraseña, tus sesiones, tu dirección IP ni la lista de las otras herramientas que usas.',
             ],
             [
                 'h' => 'Tu identificador es el mismo en todas las herramientas',
-                'p' => 'El identificador que reciben las herramientas es el de tu cuenta y no cambia nunca: es lo que permite que sigas siendo vos cuando volvés, y lo que hace posible «una cuenta para todo». La contrapartida honesta es que dos herramientas que comparen ese valor pueden deducir que sos la misma persona. Si preferís evitarlo, usá cuentas separadas o el modo standalone de cada herramienta, que funciona sin Nexo ID.',
+                'p' => 'El identificador que reciben las herramientas es el de tu cuenta y no cambia nunca: es lo que permite que sigas siendo tú cuando vuelves, y lo que hace posible «una cuenta para todo». La contrapartida honesta es que dos herramientas que comparen ese valor pueden deducir que eres la misma persona. Si prefieres evitarlo, usa cuentas separadas o el modo standalone de cada herramienta, que funciona sin Nexo ID.',
             ],
             [
                 'h' => 'Qué guardamos de las autorizaciones',
-                'p' => 'Guardamos qué aplicación autorizaste, con qué permisos y hasta cuándo, en forma de códigos y tokens asociados a tu cuenta; caducan solos y se pueden revocar. Las herramientas del propio ecosistema Nexo son de primera parte y no muestran pantalla de consentimiento, porque las registra quien opera esta instancia; una aplicación de terceros sí te pide permiso. Todavía no hay una pantalla en tu perfil para revisar y revocar esos accesos: si querés cortar uno, escribí al contacto de esta instancia.',
+                'p' => 'Guardamos qué aplicación autorizaste, con qué permisos y hasta cuándo, en forma de códigos y tokens asociados a tu cuenta; caducan solos y se pueden revocar. Las herramientas del propio ecosistema Nexo son de primera parte y no muestran pantalla de consentimiento, porque las registra quien opera esta instancia; una aplicación de terceros sí te pide permiso. Todavía no hay una pantalla en tu perfil para revisar y revocar esos accesos: si quieres cortar uno, escribe al contacto de esta instancia.',
             ],
             [
                 'h' => 'Cookies',
-                'p' => 'Solo las necesarias para que el servicio funcione: la de sesión (cifrada), la de protección contra CSRF, y dos preferencias compartidas con el resto del ecosistema —«nexo-lang» para el idioma y «nexo-theme» para el tema claro/oscuro—, que van sin cifrar justamente para que todas las herramientas puedan leerlas y no contienen ningún dato tuyo. Si marcás «Recordarme» se añade una cookie con un testigo aleatorio para no pedirte la contraseña en cada visita. Ninguna sirve para publicidad ni para seguimiento.',
+                'p' => 'Solo las necesarias para que el servicio funcione: la de sesión (cifrada), la de protección contra CSRF, y dos preferencias compartidas con el resto del ecosistema —«nexo-lang» para el idioma y «nexo-theme» para el tema claro/oscuro—, que van sin cifrar justamente para que todas las herramientas puedan leerlas y no contienen ningún dato tuyo. Si marcas «Recordarme» se añade una cookie con un testigo aleatorio para no pedirte la contraseña en cada visita. Ninguna sirve para publicidad ni para seguimiento.',
             ],
             [
                 'h' => 'Correos que te enviamos',
@@ -71,7 +71,7 @@ return [
             ],
             [
                 'h' => 'Tus derechos',
-                'p' => 'Tu nombre visible y tu contraseña los cambiás vos desde «Tu cuenta». Para pedir acceso a tus datos, su corrección o el borrado de tu cuenta, escribí a quien opera esta instancia (el contacto está más abajo y en la página de ayuda).',
+                'p' => 'Tu nombre visible y tu contraseña los cambias tú desde «Tu cuenta». Para pedir acceso a tus datos, su corrección o el borrado de tu cuenta, escribe a quien opera esta instancia (el contacto está más abajo y en la página de ayuda).',
             ],
             [
                 'h' => 'Otras instancias',
@@ -82,18 +82,18 @@ return [
 
     'terms' => [
         'title' => 'Términos de uso',
-        'intro' => 'Al usar esta instancia de Nexo ID aceptás lo que sigue. Es un servicio gratuito, ofrecido tal cual está.',
+        'intro' => 'Al usar esta instancia de Nexo ID aceptas lo que sigue. Es un servicio gratuito, ofrecido tal cual está.',
         'sections' => [
             [
                 'h' => 'Qué es el servicio',
-                'p' => 'Nexo ID es un proveedor de identidad: creás una cuenta acá y la usás para entrar a las herramientas del ecosistema Nexo mediante OAuth 2.0 con PKCE y OpenID Connect. No aloja el contenido que crees dentro de cada herramienta ni actúa como servicio de correo o de archivos.',
+                'p' => 'Nexo ID es un proveedor de identidad: creas una cuenta aquí y la usas para entrar a las herramientas del ecosistema Nexo mediante OAuth 2.0 con PKCE y OpenID Connect. No aloja el contenido que crees dentro de cada herramienta ni actúa como servicio de correo o de archivos.',
             ],
             [
                 'h' => 'Tu cuenta',
-                'p' => 'Necesitás un correo real y verificarlo para poder usar la cuenta con las herramientas. Sos responsable de mantener tu contraseña a salvo y de lo que se haga desde tus sesiones. Si sospechás de un acceso ajeno, cambiá la contraseña y cerrá las demás sesiones desde tu perfil. Una cuenta es de una persona: no la compartas.',
+                'p' => 'Necesitas un correo real y verificarlo para poder usar la cuenta con las herramientas. Eres responsable de mantener tu contraseña a salvo y de lo que se haga desde tus sesiones. Si sospechas de un acceso ajeno, cambia la contraseña y cierra las demás sesiones desde tu perfil. Una cuenta es de una persona: no la compartas.',
             ],
             [
-                'h' => 'Qué autorizás al entrar a una herramienta',
+                'h' => 'Qué autorizas al entrar a una herramienta',
                 'p' => 'Al usar Nexo ID para entrar a una herramienta le estás dando acceso a los datos del permiso solicitado: tu identificador, tu nombre visible, tu correo y su estado de verificación. Desde ahí, esa herramienta trata esos datos bajo sus propios términos y su propia política de privacidad; Nexo ID no responde por lo que haga con ellos.',
             ],
             [
@@ -106,7 +106,7 @@ return [
             ],
             [
                 'h' => 'Disponibilidad',
-                'p' => 'El servicio se ofrece sin garantías de disponibilidad. Tené en cuenta que si Nexo ID no está disponible tampoco vas a poder iniciar sesión en las herramientas que dependen de él, aunque ellas sí lo estén.',
+                'p' => 'El servicio se ofrece sin garantías de disponibilidad. Ten en cuenta que si Nexo ID no está disponible tampoco vas a poder iniciar sesión en las herramientas que dependen de él, aunque ellas sí lo estén.',
             ],
             [
                 'h' => 'Límite de responsabilidad',
@@ -114,7 +114,7 @@ return [
             ],
             [
                 'h' => 'Software libre',
-                'p' => 'Nexo ID se distribuye con licencia MIT: podés leer el código, modificarlo y alojar tu propia instancia. El software se entrega sin garantías, según indica esa licencia.',
+                'p' => 'Nexo ID se distribuye con licencia MIT: puedes leer el código, modificarlo y alojar tu propia instancia. El software se entrega sin garantías, según indica esa licencia.',
             ],
             [
                 'h' => 'Cambios',
