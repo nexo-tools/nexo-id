@@ -21,6 +21,7 @@
 // Pest note: toContain() is variadic — a second argument is another needle, not
 // a failure message — so human-readable messages go through toBeTrue()/toBe().
 
+use App\Mail\OperatorAlert;
 use App\Models\User;
 use App\Notifications\PasswordChanged;
 use App\Notifications\ResetPasswordQueued;
@@ -42,6 +43,9 @@ function nexoMails(): array
     // Every mail this tool sends is a notification: it has no mailables, and
     // the three of them are the account's whole correspondence.
     return [
+        // The operator alert renders like any other mail: it is here because the
+        // one mail nobody declared was the one that shipped broken.
+        'operator-alert' => fn () => OperatorAlert::fromThrowable(new RuntimeException('something broke'), 'https://example.test/x'),
         'verify-email' => fn () => [new VerifyEmailQueued, User::factory()->unverified()->create()],
         'reset-password' => fn () => [new ResetPasswordQueued('raw-reset-token'), User::factory()->create()],
         'password-changed' => fn () => [new PasswordChanged, User::factory()->create()],
@@ -57,7 +61,8 @@ function nexoMails(): array
  */
 function nexoOperatorMails(): array
 {
-    return [];
+    // Goes to whoever runs the instance, not to a user.
+    return ['operator-alert'];
 }
 
 /**
