@@ -13,7 +13,11 @@
             <p class="mb-2 text-sm text-muted">{{ __('This will allow it to:') }}</p>
             <ul class="list-disc space-y-1 pl-5 text-sm text-muted">
                 @foreach ($scopes as $scope)
-                    <li>{{ $scope->description }}</li>
+                    {{-- The descriptions live in config/openid.php as raw English
+                         strings (the OIDC surface — untouchable). Translating at
+                         render time keeps the scope ids and discovery intact while
+                         the consent screen speaks the visitor's language. --}}
+                    <li>{{ __($scope->description) }}</li>
                 @endforeach
             </ul>
         </div>
