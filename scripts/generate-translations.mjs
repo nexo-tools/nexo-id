@@ -35,6 +35,19 @@ for (const root of ROOTS) {
     }
 }
 
+// The consent screen translates the OAuth scope descriptions at render time
+// (`__($scope->description)` in auth/oauth/authorize.blade.php) — a variable,
+// so the literal scanner above cannot see them. They are collected from their
+// real source instead: config/openid.php's tokens_can block. The config file
+// itself stays untranslated (it is the OIDC surface).
+const openid = readFileSync('config/openid.php', 'utf8');
+const tokensCan = openid.match(/'tokens_can'\s*=>\s*\[([\s\S]*?)\]/);
+if (tokensCan) {
+    for (const match of tokensCan[1].matchAll(/=>\s*'((?:[^'\\]|\\.)*)'/g)) {
+        keys.add(match[1].replace(/\\'/g, "'"));
+    }
+}
+
 const sorted = [...keys].sort((a, b) => a.localeCompare(b, 'en'));
 let failed = false;
 
