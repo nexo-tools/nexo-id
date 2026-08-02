@@ -17,6 +17,16 @@ use Illuminate\Support\Facades\Route;
 
 $codes = [403, 404, 419, 429, 500, 503];
 
+// Hosts whose error pages are deliberately chrome-less (the isolated short-link
+// host of nexoshort). This tool has none.
+const ISOLATED_ERROR_HOSTS = [];
+
+/** The URL whose 404 must carry the tool chrome. */
+function chromeErrorUrl(string $path): string
+{
+    return $path;
+}
+
 it('ships an error view for every code the standard requires', function () use ($codes) {
     $missing = array_values(array_filter(
         $codes,
@@ -49,13 +59,25 @@ it('renders every error view, not just the one an http test can trigger', functi
 });
 
 it('serves a branded 404 instead of the framework default', function () {
-    $html = $this->get('/this-path-does-not-exist-'.uniqid())
+    $url = chromeErrorUrl('/this-path-does-not-exist-'.uniqid());
+
+    $html = $this->get($url)
         ->assertNotFound()
         ->getContent();
 
     // The chrome renders, so the page belongs to the product.
     expect($html)->toContain('404', 'nexo-header', 'nexo-footer');
     expect($html)->not->toContain('Whoops, looks like something went wrong');
+
+    $host = parse_url($url, PHP_URL_HOST) ?: parse_url((string) config('app.url'), PHP_URL_HOST);
+    if (in_array($host, ISOLATED_ERROR_HOSTS, true)) {
+        return;
+    }
+
+    // And it stays out of the index. Asserting the rendered meta (not the
+    // include) also catches a head that quietly ignores the noindex flag.
+    expect(preg_match('/<meta[^>]+name=["\']robots["\'][^>]+noindex/i', $html))
+        ->toBe(1, 'The 404 is missing <meta name="robots" content="noindex">.');
 });
 
 it('serves the legal pages and links them from each other', function () {
