@@ -23,4 +23,10 @@
 {{-- Stamp <html data-theme> before the stylesheet loads (no FOUC). --}}
 @include('partials.theme-init')
 @include('partials.beacon')
+{{-- @vite builds the woff2 files but never asks for them: the @font-face rules
+     only ship if Vite::fonts() emits them. Without this line the family face is
+     published to public/build/assets and nobody requests it, so every page falls
+     back to the system stack — which is exactly the state this repo was in. It
+     goes before @vite so the face is known when the CSS lands. --}}
+{{ Vite::fonts() }}
 @vite(['resources/css/app.css', 'resources/js/app.js'])
