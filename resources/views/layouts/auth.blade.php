@@ -6,34 +6,25 @@
     <meta name="robots" content="noindex">
     @include('partials.head')
 </head>
-<body class="flex min-h-full flex-col bg-bg px-6 py-12 text-ink antialiased">
-    {{-- Personal-preference switchers (locale + theme). The ecosystem app-switcher
-         is intentionally omitted here so the sign-in / consent flow stays focused:
-         you are signing in TO the identity provider, and a switcher would invite
-         you to leave mid-flow. Dropping the header is a layout decision; dropping
-         a person's theme or language is not, so these two stay (STANDARD.md
-         "Auth y errores", the documented FOCUSED_AUTH exception). --}}
-    <div class="mx-auto flex w-full max-w-md items-center justify-end gap-1">
-        <a href="{{ route('help') }}" class="nexo-btn nexo-btn--ghost text-sm">{{ __('nexo.help.title') }}</a>
-        <x-nexo-locale-switcher />
-        <x-nexo-theme-toggle />
-    </div>
+<body class="flex min-h-full flex-col bg-bg text-ink antialiased">
+    {{-- Full family chrome. This layout used to be the ecosystem's documented
+         "focused auth" exception (no header, just a loose row of locale + theme
+         controls), but crossing from any tool's sign-in to the IdP's made the
+         family look broken, so Alvaro removed the exception on 2026-08-02:
+         six tools, one chrome. The brand now lives in the header's wordmark —
+         no centered wordmark above the card. --}}
+    <x-nexo-header brand="Nexo ID" mark="/ecosystem/nexoid.svg" />
 
-    <main class="mx-auto flex w-full max-w-md flex-1 flex-col justify-center">
-        <a href="{{ url('/') }}" class="mb-8 flex items-center justify-center gap-2 text-lg font-semibold">
-            @include('partials.brand')
-            <span>{{ config('app.name') }}</span>
-        </a>
-
+    <main class="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-6 py-12">
         <x-nexo-auth-card>
             <h1 class="mb-6 text-xl font-semibold">@yield('heading')</h1>
             @yield('content')
         </x-nexo-auth-card>
     </main>
 
-    {{-- The app-switcher is omitted above to keep the flow focused, but the footer
-         stays: the consent screen is exactly where someone decides whether to hand
-         an account over, so privacy and terms must be one click away. --}}
+    {{-- The footer stays: the consent screen is exactly where someone decides
+         whether to hand an account over, so privacy and terms must be one click
+         away. --}}
     <x-nexo-footer />
 </body>
 </html>

@@ -4,12 +4,9 @@
     @include('partials.head')
 </head>
 <body class="flex min-h-full flex-col bg-bg font-sans text-ink antialiased">
+    {{-- The help link is no longer passed here: the canonical nexo-header bakes
+         it in as the first nav item (2026-08-02). --}}
     <x-nexo-header brand="Nexo ID" mark="/ecosystem/nexoid.svg" :home="url('/')">
-        <x-slot:nav>
-            <a href="{{ route('help') }}"
-               class="rounded-md px-2 py-1 text-sm font-medium hover:bg-bg-subtle {{ request()->routeIs('help') ? 'text-ink' : 'text-muted' }}"
-               @if (request()->routeIs('help')) aria-current="page" @endif>{{ __('nexo.help.title') }}</a>
-        </x-slot:nav>
         <x-slot:actions>
             @auth
                 <a href="{{ url('/profile') }}" class="nexo-btn nexo-btn--ghost">{{ __('Your account') }}</a>
