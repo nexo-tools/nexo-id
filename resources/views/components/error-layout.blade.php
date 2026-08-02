@@ -7,6 +7,11 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full">
 <head>
+    {{-- An error page has no business in a search result. Written here rather
+         than passed to partials.head because that partial builds its head from
+         sections and takes no noindex flag — the same reason layouts/auth
+         declares its own. --}}
+    <meta name="robots" content="noindex">
     @include('partials.head')
 </head>
 <body class="flex min-h-full flex-col bg-bg font-sans text-ink antialiased">

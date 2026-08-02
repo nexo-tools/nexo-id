@@ -28,6 +28,12 @@
         {{ __('nexo.footer.source') }}
     </a>
 
+    {{-- Help lives here for the same reason the legal pages do: the footer is the
+         one piece of chrome that renders on every surface. This tool already
+         linked it from every chrome it has; the footer makes that the family
+         rule instead of this tool's good habit. --}}
+    <a href="{{ route('help') }}">{{ __('nexo.help.title') }}</a>
+
     {{-- Legal pages must be reachable from every page (STANDARD.md), the sign-in
          and consent screens included: this tool is the identity provider and
          holds the email, the password hash and the sessions of every account. --}}
