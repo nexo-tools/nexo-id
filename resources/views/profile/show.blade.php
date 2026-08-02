@@ -49,7 +49,10 @@
 
         {{-- Active sessions (AC-SESS-1/2/3) --}}
         <section>
-            <div class="mb-4 flex items-center justify-between">
+            {{-- flex-wrap + gap: at 390px the title and the sign-out-others link
+                 overlapped glyph on glyph; wrapping puts the link on its own line
+                 instead of on top of the heading. --}}
+            <div class="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
                 <h2 class="text-lg font-medium">{{ __('Active sessions') }}</h2>
                 @if ($sessions->count() > 1)
                     {{-- Alpine, not an inline onsubmit: the CSP has no 'unsafe-hashes',
