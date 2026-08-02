@@ -9,7 +9,11 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 // Purge revoked/expired OAuth tokens and auth codes nightly (needs the cron).
-Schedule::command('passport:purge')->daily();
+// Inline (Artisan::call): this hosting disables proc_open/exec, so a scheduled
+// subprocess dies before it starts — the nightly purge was silently failing.
+Schedule::call(fn () => Artisan::call('passport:purge'))
+    ->name('passport-purge')
+    ->daily();
 
 /*
  * Shared hosting cannot run a long-lived queue worker (no daemons, ADR-002), so
@@ -21,10 +25,16 @@ Schedule::command('passport:purge')->daily();
  * Without it the queued PasswordChanged notice never leaves: the row sits in
  * the jobs table while the account page reports the password was changed.
  *
+ * The drain runs INLINE (Schedule::call + Artisan::call), never as a
+ * Schedule::command subprocess: proc_open/exec are disabled on this hosting
+ * (Hostinger, PHP 8.5 desde 2026-07-27) and a scheduled subprocess dies
+ * before it starts.
+ *
  * --stop-when-empty exits once the queue drains so runs never pile up;
  * --max-time keeps a run inside its minute; withoutOverlapping is the belt to
  * that braces.
  */
-Schedule::command('queue:work --stop-when-empty --tries=3 --max-time=55')
+Schedule::call(fn () => Artisan::call('queue:work --stop-when-empty --tries=3 --max-time=55'))
+    ->name('queue-drain')
     ->everyMinute()
     ->withoutOverlapping();
