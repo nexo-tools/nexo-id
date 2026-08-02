@@ -85,7 +85,9 @@ cd ~/domains/<domain>
 rm -rf public_html/<subdomain-folder>    # the panel seeds a default.php here
 ln -s ~/domains/<domain>/nexo-id/public public_html/<subdomain-folder>
 
-# 8. Cron (panel → Cron Jobs) — runs the scheduler (nightly passport:purge)
+# 8. Cron (panel → Cron Jobs) — runs the scheduler: nightly passport:purge AND
+#    the per-minute queue drain that mail depends on (routes/console.php).
+#    Without this entry no notification ever leaves the queue.
 #   * * * * * cd ~/domains/<domain>/nexo-id && php artisan schedule:run >> /dev/null 2>&1
 
 # 9. Register the first client(s) — the redirect must EXACTLY match the tool's
