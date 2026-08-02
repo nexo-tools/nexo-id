@@ -54,10 +54,12 @@ instance or run your own. It is **live in production at
 
 ## Screenshots
 
-Captured from the live instance.
+Captured from a local instance seeded with `DemoSeeder`, by
+`node ~/alvaro/scripts/nexo-shots.mjs .` — never from anyone's real account.
 
 | Light | Dark |
 | --- | --- |
+| <img src="docs/screenshots/home-light.png" alt="Nexo ID landing page in light theme"> | <img src="docs/screenshots/home-dark.png" alt="Nexo ID landing page in dark theme"> |
 | <img src="docs/screenshots/login-light.png" alt="Nexo ID sign-in in light theme"> | <img src="docs/screenshots/login-dark.png" alt="Nexo ID sign-in in dark theme"> |
 
 See it for real at the [live demo](https://nexoid.alvarocdev.com).
