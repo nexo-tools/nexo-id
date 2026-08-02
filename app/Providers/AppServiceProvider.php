@@ -34,7 +34,11 @@ class AppServiceProvider extends ServiceProvider
         // lockout (LoginRequest); this adds a broad IP cap on top. userinfo has
         // no other limit — 'throttle:oidc-ip' is applied on its route. authorize
         // is capped by ThrottleAuthorizeByIp (Passport owns that route).
-        RateLimiter::for('login-ip', fn (Request $request) => Limit::perMinute(20)->by((string) $request->ip()));
-        RateLimiter::for('oidc-ip', fn (Request $request) => Limit::perMinute(60)->by((string) $request->ip()));
+        RateLimiter::for('login-ip', fn (Request $request) => Limit::perMinute(
+            (int) config('nexo.login_rate.per_ip')
+        )->by((string) $request->ip()));
+        RateLimiter::for('oidc-ip', fn (Request $request) => Limit::perMinute(
+            (int) config('nexo.oidc_rate.per_ip')
+        )->by((string) $request->ip()));
     }
 }

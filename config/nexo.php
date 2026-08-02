@@ -61,4 +61,14 @@ return [
         'origin' => (string) env('NEXO_BEACON_ORIGIN', 'nexoid'),
     ],
 
+    // Techos de rate limiting, env-tunables: un límite escrito a mano en el
+    // provider es un límite que nadie puede subir a las 3 de la mañana cuando
+    // un pico legítimo se confunde con un ataque (STANDARD.md, "Rate limiting").
+    'login_rate' => [
+        'per_ip' => env('NEXO_LOGIN_RATE_PER_IP', 20),
+    ],
+
+    'oidc_rate' => [
+        'per_ip' => env('NEXO_OIDC_RATE_PER_IP', 60),
+    ],
 ];
