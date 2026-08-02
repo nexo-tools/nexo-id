@@ -60,7 +60,10 @@ php artisan key:generate            # BEFORE setting APP_ENV=production
 #   DB_DATABASE=<db>, DB_USERNAME=<db-user>, DB_PASSWORD=<db-pass>
 #   SESSION_SECURE_COOKIE=true
 #   MAIL_MAILER=smtp, MAIL_SCHEME=smtps, MAIL_HOST=<smtp-host>, MAIL_PORT=465,
-#     MAIL_USERNAME=<mail-user>, MAIL_PASSWORD=..., MAIL_FROM_ADDRESS=<mail-user>
+#     MAIL_USERNAME=<mail-user>, MAIL_PASSWORD=...
+#   Family sender convention (one address per tool, C1):
+#     MAIL_FROM_ADDRESS="nexoid@alvarocdev.com", MAIL_FROM_NAME="Nexo ID"
+#     No notification sets its own from — this is the single place that decides it.
 #   OPENID_FORCE_HTTPS=true
 #   NEXO_ATTRIBUTION_LABEL / NEXO_ATTRIBUTION_URL per your instance
 

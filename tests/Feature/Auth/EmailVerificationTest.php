@@ -1,8 +1,8 @@
 <?php
 
 use App\Models\User;
+use App\Notifications\VerifyEmailQueued;
 use Illuminate\Auth\Events\Verified;
-use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
@@ -59,12 +59,13 @@ it('AC-VERIFY-3: lets verified users into the authenticated area', function () {
 });
 
 it('AC-VERIFY-5: the verification link lifetime follows the configured ttl (NEXO_VERIFICATION_TTL wiring)', function () {
-    // Laravel's VerifyEmail notification signs the link for auth.verification.expire minutes.
+    // The notification signs the link for auth.verification.expire minutes.
     config(['auth.verification.expire' => 1]);
     $user = User::factory()->unverified()->create();
 
-    $mail = (new VerifyEmail)->toMail($user);
-    $url = $mail->actionUrl;
+    // Our own notification builds the same signed URL; it carries it in the
+    // view data rather than in actionUrl, because the body is a view now.
+    $url = (new VerifyEmailQueued)->toMail($user)->viewData['url'];
 
     // Past the 1-minute window the signed link is stale and rejected.
     $this->travel(2)->minutes();

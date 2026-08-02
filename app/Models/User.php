@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Notifications\ResetPasswordQueued;
+use App\Notifications\VerifyEmailQueued;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -45,5 +47,26 @@ class User extends Authenticatable implements MustVerifyEmail, OAuthenticatable
         return Attribute::make(
             set: fn (string $value): string => strtolower(trim($value)),
         );
+    }
+
+    /**
+     * Both auth mails go out queued, in this product's template and language,
+     * with the locale pinned at dispatch (family rules C2 and C3). The queue
+     * worker has no request to read a locale from, which is exactly how the
+     * identity provider of a Spanish-first ecosystem ended up mailing
+     * "Verify Email Address" to every new account.
+     *
+     * users.locale stays reserved and unwritten: nothing in the product lets a
+     * person choose a language yet, and guessing one from a request would make
+     * the column lie. Documented decision, 2026-08-02.
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify((new ResetPasswordQueued($token))->locale(app()->getLocale()));
+    }
+
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify((new VerifyEmailQueued)->locale(app()->getLocale()));
     }
 }

@@ -2,7 +2,7 @@
 
 use App\Models\User;
 use App\Notifications\PasswordChanged;
-use Illuminate\Auth\Notifications\ResetPassword;
+use App\Notifications\ResetPasswordQueued;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -16,7 +16,7 @@ it('AC-PWD-1: emails a reset link and stores the token hashed', function () {
     $this->post('/forgot-password', ['email' => $user->email])
         ->assertSessionHas('status');
 
-    Notification::assertSentTo($user, ResetPassword::class);
+    Notification::assertSentTo($user, ResetPasswordQueued::class);
 
     // The DB keeps only a hash of the token, never the raw token.
     $stored = DB::table('password_reset_tokens')->where('email', $user->email)->first();

@@ -26,7 +26,7 @@ class ChangeUserPassword
 
         $this->invalidateOtherSessions($user, $keepSessionId);
 
-        $user->notify(new PasswordChanged);
+        $user->notify((new PasswordChanged)->locale(app()->getLocale()));
     }
 
     private function invalidateOtherSessions(User $user, ?string $keepSessionId): void

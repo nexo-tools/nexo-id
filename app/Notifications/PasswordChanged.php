@@ -25,9 +25,12 @@ class PasswordChanged extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
+        // A view, not ->line(): the markdown wrapper builds its shell from the
+        // framework's English strings ("Hello!", "Regards"), which this
+        // project's i18n cannot reach — so a translated body arrived inside an
+        // untranslated frame that looked nothing like the family's mail.
         return (new MailMessage)
             ->subject(__('Your :app password was changed', ['app' => config('app.name')]))
-            ->line(__('The password for your account was just changed.'))
-            ->line(__('If this was not you, reset your password immediately and review your active sessions.'));
+            ->view('emails.password-changed');
     }
 }
