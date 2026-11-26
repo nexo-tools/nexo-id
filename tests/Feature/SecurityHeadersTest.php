@@ -34,6 +34,26 @@ it('AC-SEC-1: sends a self-contained content-security-policy with no external ho
     expect($directives)->not->toContain('http://')->not->toContain('https://');
 });
 
+it('AC-SEC-1: connect-src follows the configured beacon endpoint, not a hard-coded hub', function () {
+    // A self-hosted (or local e2e) hub: the beacon posts to NEXO_BEACON_ENDPOINT, so
+    // that is the origin the browser must be allowed to reach — and only that one.
+    config(['nexo.beacon.endpoint' => 'http://nexotools.localhost:9080/beacon']);
+
+    $csp = (string) $this->get('/')->headers->get('Content-Security-Policy');
+    preg_match('/connect-src ([^;]+)/', $csp, $m);
+
+    expect(trim($m[1] ?? ''))->toBe("'self' http://nexotools.localhost:9080");
+});
+
+it('AC-SEC-1: connect-src stays self-only when the beacon endpoint is not an http(s) URL', function () {
+    config(['nexo.beacon.endpoint' => 'javascript:alert(1)']);
+
+    $csp = (string) $this->get('/')->headers->get('Content-Security-Policy');
+    preg_match('/connect-src ([^;]+)/', $csp, $m);
+
+    expect(trim($m[1] ?? ''))->toBe("'self'");
+});
+
 it('AC-SEC-2: does not advertise HSTS over plain http', function () {
     $response = $this->get('http://localhost/');
 

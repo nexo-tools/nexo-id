@@ -56,10 +56,17 @@ class SecurityHeaders
         $script = "'self' 'unsafe-eval' 'sha256-QY4re+NFw+ChK0c8H/EaTpktoUisSWU0fL7V6J43umM='";
         $style = "'self' 'unsafe-inline'";
         // The one permitted external host: the Nexo Tools hub, so the opt-in
-        // cookieless pageview beacon (navigator.sendBeacon) is not blocked. It
-        // only ever fires when NEXO_BEACON_ENABLED renders the beacon metas; the
-        // permission is harmless otherwise. Mirror any change in public/.htaccess.
-        $connect = "'self' https://nexotools.alvarocdev.com";
+        // cookieless pageview beacon is not blocked. It only ever fires when
+        // NEXO_BEACON_ENABLED renders the beacon metas; the permission is
+        // harmless otherwise. The origin comes from NEXO_BEACON_ENDPOINT (the
+        // same URL the beacon posts to), so a self-hosted or local hub is not
+        // blocked by a hard-coded production host. Mirror any change in
+        // public/.htaccess (the default endpoint is written there literally).
+        $connect = "'self'";
+
+        if (($hub = $this->beaconOrigin()) !== null) {
+            $connect .= " {$hub}";
+        }
 
         // Allow the Vite dev server (and its websocket) while running HMR locally.
         if ($dev = $this->viteDevServer()) {
@@ -114,6 +121,19 @@ class SecurityHeaders
         }
 
         return implode(' ', ["'self'", ...array_values(array_unique($origins))]);
+    }
+
+    /** scheme://host[:port] of the configured beacon endpoint, or null if it is not an http(s) URL. */
+    private function beaconOrigin(): ?string
+    {
+        $parts = parse_url((string) config('nexo.beacon.endpoint', ''));
+
+        if (! is_array($parts) || ! isset($parts['scheme'], $parts['host'])
+            || ! in_array(strtolower($parts['scheme']), ['http', 'https'], true)) {
+            return null;
+        }
+
+        return strtolower($parts['scheme']).'://'.$parts['host'].(isset($parts['port']) ? ':'.$parts['port'] : '');
     }
 
     private function viteDevServer(): ?string
