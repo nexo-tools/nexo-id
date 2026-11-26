@@ -97,6 +97,6 @@ Key work per tool: additive `nexo_id_sub` migration, SSO client via the Phase 3 
 
 **Objective:** the visible ecosystem layer and post-migration hardening.
 
-Key work (from SCOPE backlog, prioritized at phase opening): "your tools" account page; 2FA (TOTP + backup codes); back-channel/propagated logout evaluation; email change flow; user-visible security audit log. Nexo Events integrates whenever it's born (needs only the Phase 3 pattern, not this phase).
+Key work (from SCOPE backlog, prioritized at phase opening): "your tools" account page; 2FA (TOTP + backup codes); ~~back-channel/propagated logout evaluation~~ (done 2026-11-26, [ADR-010](adr/ADR-010-session-control.md)); email change flow; user-visible security audit log. Nexo Events integrates whenever it's born (needs only the Phase 3 pattern, not this phase).
 
 **Gate 5:** shipped items with their SPEC/AC/test discipline; full-ecosystem security re-audit; owner sign-off.

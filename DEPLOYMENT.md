@@ -66,6 +66,8 @@ php artisan key:generate            # BEFORE setting APP_ENV=production
 #     No notification sets its own from — this is the single place that decides it.
 #   OPENID_FORCE_HTTPS=true
 #   NEXO_ATTRIBUTION_LABEL / NEXO_ATTRIBUTION_URL per your instance
+#   Optional (defaults shown, ADR-010): NEXO_OIDC_BACKCHANNEL=true (kill-switch of
+#     the back-channel logout), NEXO_OIDC_AUTHORIZE_PER_MINUTE=60 (authorize per IP)
 
 # 3. OAuth signing keys — generated ON THE SERVER, never committed
 php artisan passport:keys
@@ -96,6 +98,12 @@ ln -s ~/domains/<domain>/nexo-id/public public_html/<subdomain-folder>
 # 9. Register the first client(s) — the redirect must EXACTLY match the tool's
 #    callback route (the nexo-sso-client template registers /auth/nexo/callback):
 php artisan nexo:sso-client "My Tool" --redirect=https://<tool-host>/auth/nexo/callback
+
+# 10. Once the tool's back-channel endpoint is live (ADR-010), point Nexo ID at it and
+#     register its "signed out" page as a post-logout destination (idempotent):
+php artisan nexo:sso-client:update <client_id> \
+    --backchannel=https://<tool-host>/auth/nexo/backchannel-logout \
+    --add-redirect=https://<tool-host>/auth/nexo/signed-out
 ```
 
 ## Post-deploy verification
@@ -106,7 +114,14 @@ curl -sS https://<nexoid-host>/.well-known/openid-configuration | grep -o '"issu
 curl -sS -D - -o /dev/null https://<nexoid-host> | grep -i content-security-policy      # strict policy, not upgrade-insecure-requests
 ```
 
-Then in a browser: register → verify email (real SMTP) → sign in; and drive one full OAuth flow from a client. Check the console for CSP violations.
+```bash
+curl -sS https://<nexoid-host>/.well-known/openid-configuration | grep backchannel_logout       # both flags true (ADR-010)
+curl -sS -D - -o /dev/null https://<nexoid-host>/login | grep -i cache-control                   # no-store, private
+```
+
+Then in a browser: register → verify email (real SMTP) → sign in; and drive one full OAuth flow from a client,
+signing in **with the password** (that is the hop `form-action` used to block). Check the console for CSP
+violations.
 
 ## Gotchas (LiteSpeed / shared hosting)
 
@@ -116,6 +131,9 @@ Then in a browser: register → verify email (real SMTP) → sign in; and drive 
 - **`public_html/<subdomain-folder>`** ships a `default.php` → `rm -rf` before the symlink (step 7).
 - **Passport keys** must exist on the server and stay out of git; regenerate only with care (invalidates issued tokens).
 - **uuid user columns**: migrations include `fix_oauth_user_id_columns_for_uuid_users` — never skip migrations; non-strict MySQL/MariaDB would otherwise truncate uuids silently.
+- **CSP `form-action` lists the tools' origins literally in `public/.htaccess`** (LiteSpeed serves that one, not the middleware's). A self-host on other domains edits them there too, or the sign-in → tool redirect is blocked.
+- **«Remember me» cut (2026-11-26, ADR-010):** migration `2026_11_26_000003_cut_remember_tokens_issued_under_the_400_day_policy` invalidates every «remember me» cookie issued under the old ~400-day policy, once, in the deploy's `migrate --force`. Nobody is signed out of an open session. To repeat it on purpose: `php artisan nexo:rotate-remember-tokens`.
+- **Back-channel retries ride the queue drain** (the per-minute scheduler entry, step 8): without the cron, a logout that a tool missed is never retried. Kill-switch: `NEXO_OIDC_BACKCHANNEL=false`.
 
 ## Updates
 

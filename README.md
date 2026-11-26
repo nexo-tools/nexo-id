@@ -36,15 +36,20 @@ instance or run your own. It is **live in production at
   enforced)** and a full OpenID Connect identity layer: `id_token`, `userinfo`,
   discovery (`/.well-known/openid-configuration`) and JWKS. Any client, on any domain,
   stack or host, integrates with off-the-shelf OIDC libraries.
-- **Silent SSO + central logout** — an active Nexo ID session signs the user into any
-  tool without re-entering credentials; RP-initiated logout ends the session and
-  redirects only to validated URIs (never an open redirect).
+- **Silent SSO + session control** — an active Nexo ID session signs the user into any
+  tool without re-entering credentials, and Nexo ID owns that session: signing out
+  anywhere signs the device out of every tool, through OIDC back-channel logout
+  (signed `logout_token`s, `sid` in every id_token). RP-initiated logout redirects only
+  to validated URIs and asks for confirmation when the request is not vouched for by
+  a valid `id_token_hint`.
 - **Secure by default** — email verification (blocking for SSO use), per-account and
   per-IP rate limiting on login / registration / recovery, single-use hashed recovery
   tokens, password-change email notifications, `Secure` + `HttpOnly` + `SameSite`
-  cookies, strict CSP + security headers, and a dependency audit in CI.
-- **Session control** — users list and revoke their active sessions (individually or
-  all others) from their profile.
+  cookies, strict CSP + security headers, `no-store` on everything personal, and a
+  dependency audit in CI.
+- **Your sessions, your call** — users list and revoke their active sessions — one, all
+  the others, or every device — and each revocation reaches the tools too. «Remember
+  me» lasts 30 days.
 - **Self-hostable** — run your own identity provider for your own ecosystem, or point
   your tools at the hosted instance.
 - **Private by design** — **zero external requests** at runtime (no CDNs, no font
@@ -117,5 +122,5 @@ MIT License © [Alvaro Carrizales](https://alvarocdev.com) — the tech behind N
 ---
 
 Status: **live** at [nexoid.alvarocdev.com](https://nexoid.alvarocdev.com) — OAuth 2.0 + PKCE /
-OIDC (authorize, token, `id_token`, userinfo, discovery, JWKS), silent SSO and central logout,
+OIDC (authorize, token, `id_token`, userinfo, discovery, JWKS), silent SSO and back-channel logout,
 with five sibling tools authenticating against it in production.

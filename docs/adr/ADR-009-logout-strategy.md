@@ -1,7 +1,7 @@
 # ADR-009 — Logout strategy: RP-initiated now, back-channel deferred
 
 - **Date:** 2026-07-24
-- **Status:** Accepted (ecosystem hardening M0; evaluation triggered by ">1 SSO client live/integrated")
+- **Status:** Accepted (ecosystem hardening M0; evaluation triggered by ">1 SSO client live/integrated"). **§2–3 superseded by [ADR-010](ADR-010-session-control.md) (2026-11-26):** the trigger fired (5 live clients) and back-channel logout is implemented; §1 (RP-initiated logout) stands, extended there.
 
 ## Context
 
