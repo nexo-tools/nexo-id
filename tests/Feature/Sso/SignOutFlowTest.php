@@ -18,6 +18,7 @@ use App\Models\User;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use Illuminate\Testing\TestResponse;
 use Laravel\Passport\ClientRepository;
 
 function sofClient(string $host): OauthClient
@@ -364,4 +365,74 @@ it('the signed-out page says it in Spanish with the glossary words', function ()
     expect(__('Sign out all other sessions'))->toBe('Cerrar las demás sesiones');
     expect(__('Sign out of all devices'))->toBe('Cerrar sesión en todos los dispositivos');
     expect(__('Sign out of all of Nexo?'))->toBe('¿Cerrar sesión en todo Nexo?');
+});
+
+// ── «Mantener la sesión abierta» on the confirmation (v2.2) ─────────────────
+//
+// The tool that sent the person here has already ended its own session, so
+// «keep me signed in» goes back INTO that tool (url + entry of the ecosystem
+// registry: its panel, with zero clicks through Nexo ID) when the client_id is
+// one of the registry's tools; anywhere else, the account.
+
+/** The href of «Mantener la sesión abierta» on a confirmation page. */
+function sofKeepHref(TestResponse $page): string
+{
+    preg_match('/<a href="([^"]*)" data-keep-signed-in/', (string) $page->getContent(), $match);
+    expect($match)->toHaveKey(1);
+
+    return html_entity_decode($match[1]);
+}
+
+it('«Mantener la sesión abierta» goes back into the registry tool that asked, at its entry', function () {
+    $client = sofClient('nexolinks.alvarocdev.com');
+    sofSignIn(User::factory()->create());
+
+    $page = $this->get(route('openid.end_session_endpoint', [
+        'client_id' => $client->getKey(),
+        'post_logout_redirect_uri' => 'https://nexolinks.alvarocdev.com/auth/nexo/signed-out',
+    ]));
+
+    $page->assertOk()->assertViewIs('auth.logout-confirm');
+    expect(sofKeepHref($page))->toBe('https://nexolinks.alvarocdev.com/auth/nexo/enter');
+});
+
+it('«Mantener la sesión abierta» needs only the client_id to know the tool (no return URI)', function () {
+    $client = sofClient('nexoevents.alvarocdev.com');
+    sofSignIn(User::factory()->create());
+
+    expect(sofKeepHref($this->get(route('openid.end_session_endpoint', ['client_id' => $client->getKey()]))))
+        ->toBe('https://nexoevents.alvarocdev.com/auth/nexo/enter');
+});
+
+it('«Mantener la sesión abierta» goes to the account for anything that is not a registry tool', function (Closure $clientId) {
+    sofSignIn(User::factory()->create());
+
+    $page = $this->get(route('openid.end_session_endpoint', array_filter(['client_id' => $clientId()])));
+
+    expect(sofKeepHref($page))->toBe(route('profile.show'));
+})->with([
+    'no client_id' => [fn (): ?string => null],
+    'unknown client_id' => [fn (): string => '00000000-0000-0000-0000-000000000000'],
+    'a client outside the registry' => [fn (): string => (string) sofClient('ana.example')->getKey()],
+    'a revoked registry client' => [function (): string {
+        $client = sofClient('nexolinks.alvarocdev.com');
+        $client->forceFill(['revoked' => true])->save();
+
+        return (string) $client->getKey();
+    }],
+]);
+
+it('«Mantener la sesión abierta» after an expired confirmation still goes back into the tool', function () {
+    sofEnforceCsrf();
+    $client = sofClient('nexoagenda.alvarocdev.com');
+    sofSignIn(User::factory()->create());
+
+    $again = $this->post(route('openid.end_session.confirm'), [
+        '_token' => 'stale',
+        'client_id' => $client->getKey(),
+    ]);
+    $again->assertRedirect();
+
+    expect(sofKeepHref($this->get((string) $again->headers->get('Location'))))
+        ->toBe('https://nexoagenda.alvarocdev.com/auth/nexo/enter');
 });

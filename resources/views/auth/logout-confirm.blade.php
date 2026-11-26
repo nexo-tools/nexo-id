@@ -7,7 +7,9 @@
 
      $return carries a tool's client_id + post_logout_redirect_uri (+ state)
      when that pair is registered, so confirming goes back to the tool; the
-     controller checks it again on the POST. --}}
+     controller checks it again on the POST. $keepUrl is where «Mantener la
+     sesión abierta» goes: back into that tool (url + entry) when the client_id
+     is a tool of the ecosystem registry, else the account. --}}
 @section('title', __('Sign out of all of Nexo?'))
 @section('heading', __('Sign out of all of Nexo?'))
 
@@ -27,6 +29,6 @@
     </form>
 
     <div class="mt-6 text-center text-sm">
-        <a href="{{ route('profile.show') }}" class="inline-flex min-h-11 items-center text-link hover:text-link-hover">{{ __('Keep me signed in') }}</a>
+        <a href="{{ $keepUrl ?? route('profile.show') }}" data-keep-signed-in class="inline-flex min-h-11 items-center text-link hover:text-link-hover">{{ __('Keep me signed in') }}</a>
     </div>
 @endsection

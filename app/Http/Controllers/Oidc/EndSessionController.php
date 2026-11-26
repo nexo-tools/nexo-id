@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Oidc;
 
+use App\Auth\ConnectedTools;
 use App\Auth\IdpSessions;
+use App\Models\OauthClient;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -46,6 +48,7 @@ class EndSessionController
     public function __construct(
         private ClientRepository $clients,
         private IdpSessions $sessions,
+        private ConnectedTools $tools,
     ) {}
 
     public function __invoke(Request $request): RedirectResponse|View
@@ -66,6 +69,7 @@ class EndSessionController
             if ($user !== null) {
                 return view('auth.logout-confirm', [
                     'return' => $return !== null ? ['client_id' => $clientId, 'post_logout_redirect_uri' => $postLogoutRedirectUri, 'state' => $state] : null,
+                    'keepUrl' => $this->keepSignedInUrl($clientId),
                 ]);
             }
 
@@ -83,6 +87,30 @@ class EndSessionController
         // Unknown client or an unregistered URI: our own page, never a redirect
         // to a caller-supplied destination.
         return view('auth.logged-out');
+    }
+
+    /**
+     * Where «Mantener la sesión abierta» goes on the confirmation. A tool that
+     * sent the person here has already ended its own session, so when the
+     * client_id is a tool of the ecosystem registry (non-revoked, matched by
+     * origin as in «Herramientas conectadas») it is that tool's url + entry:
+     * its panel, signed in again through Nexo ID with zero clicks. Anything
+     * else — no client_id, an unknown or revoked one, a third-party client
+     * whose front door Nexo ID does not know — the account.
+     */
+    private function keepSignedInUrl(string $clientId): string
+    {
+        $client = $clientId !== '' ? OauthClient::query()->find($clientId) : null;
+
+        if ($client !== null && ! $client->revoked) {
+            $described = $this->tools->describe($client);
+
+            if ($described['key'] !== null && $described['openUrl'] !== null) {
+                return $described['openUrl'];
+            }
+        }
+
+        return route('profile.show');
     }
 
     /**
