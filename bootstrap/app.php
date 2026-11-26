@@ -1,16 +1,17 @@
 <?php
 
 use App\Http\Middleware\EnsureIdpSessionActive;
+use App\Http\Middleware\NexoNoStore;
 use App\Http\Middleware\NoStoreForSensitiveResponses;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
-use App\Mail\OperatorAlert;
+use App\Support\OperatorAlerts;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Session\TokenMismatchException;
+use Illuminate\Support\Facades\Auth;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -26,6 +27,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             SetLocale::class,
             SecurityHeaders::class,
+            // no-store on everything with a session and on the auth screens
+            // (templates/nexo-ui, identical in the 6 apps), plus the IdP's own
+            // extras: the OAuth surface and the sign-out pages.
+            NexoNoStore::class,
             NoStoreForSensitiveResponses::class,
             // Last, so a browser whose sid was ended elsewhere is signed out
             // before the route runs — and still gets the headers above.
@@ -40,28 +45,30 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         // Something broke and nobody is watching: this ecosystem has no error
         // tracker by design (a third party observing users contradicts the
-        // product), so the operator hears about a 500 by mail. Deduped by
-        // exception identity for 15 minutes — a loop must not flood an inbox
-        // until its owner stops reading it. See templates/nexo-ops/README.md.
-        $exceptions->report(function (Throwable $e): void {
-            // Off unless the operator turned it on — which is also what keeps
-            // a suite quiet, since the flag is false in the testing env.
-            if (! config('nexo.ops_mail', false)) {
-                return;
+        // product), so the operator hears about it by mail — deduped by
+        // exception identity, and a queued job only once it gives up. The
+        // queue half is wired in ->booted() below. See templates/nexo-ops.
+        $exceptions->report(fn (Throwable $e) => OperatorAlerts::report($e));
+
+        // «Cerrar sesión» with an expired page (CONTRATO-F3 §0.1, v2.1 item 2):
+        // a 419 there is a person who wants out and an old CSRF token, not an
+        // attack — a forged cross-site POST is exactly what this must not
+        // honour, so it never signs anybody out by itself. Signed in (the
+        // «remember me» cookie still holds): the same «¿Cerrar sesión en todo
+        // Nexo?» confirmation end_session asks, a fresh CSRF-protected POST.
+        // Not signed in any more: there is nothing to end — the signed-out page.
+        $exceptions->render(function (Throwable $e, Request $request) {
+            $mismatch = $e instanceof TokenMismatchException || $e->getPrevious() instanceof TokenMismatchException;
+
+            if (! $mismatch || ! $request->isMethod('POST') || ! $request->routeIs('logout', 'logout.everywhere')) {
+                return null;
             }
 
-            $recipient = (string) config('nexo.support_email');
-            if ($recipient === '') {
-                return;
-            }
-
-            $key = 'ops-mail:'.sha1($e::class.'|'.$e->getFile().'|'.$e->getLine());
-            if (! Cache::add($key, true, now()->addMinutes(15))) {
-                return;
-            }
-
-            Mail::to($recipient)->queue(OperatorAlert::fromThrowable($e, request()?->fullUrl()));
+            return Auth::guard('web')->check()
+                ? response()->view('auth.logout-confirm', [], 200)
+                : redirect()->route('signed-out');
         });
+
         // Machine endpoints answer JSON (a 401, not an HTML login redirect) when
         // unauthenticated. /oauth/userinfo is token-guarded (auth:api); the
         // browser-facing /oauth/authorize is intentionally excluded so it keeps
@@ -69,4 +76,6 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->is('oauth/userinfo'),
         );
-    })->create();
+    })
+    ->booted(fn (Application $app) => OperatorAlerts::listen($app['events']))
+    ->create();

@@ -17,6 +17,14 @@ return [
         'url' => env('NEXO_ATTRIBUTION_URL'),
     ],
 
+    // Shared chrome v2 (templates/nexo-ui, App\Support\NexoChrome): the route
+    // of this app's panel — where the wordmark goes with a session and what the
+    // account menu calls «Tu cuenta» (lang nexo.app.panel). In Nexo ID the panel
+    // IS the account, so the menu has no separate «Tu cuenta Nexo ID» item.
+    'chrome' => [
+        'panel_route' => 'profile.show',
+    ],
+
     // Help-center contact target (instance-configurable). A support form URL wins;
     // otherwise a support email becomes a mailto:; otherwise the help page falls
     // back to the attribution URL (the repo) so "contact us" always resolves.
@@ -49,8 +57,9 @@ return [
 
     // Cookieless ecosystem analytics (opt-in). Off by default so a standalone
     // install phones nobody home; when enabled, resources/js/nexo-beacon.js
-    // sendBeacon()s an anonymous pageview to the Nexo Tools hub. See the shared
-    // partials/beacon.blade.php (metas rendered only when enabled).
+    // posts an anonymous pageview to the Nexo Tools hub — a text/plain fetch
+    // with no credentials, so there is no CORS preflight (nexo-ui v2.1). See the
+    // shared partials/beacon.blade.php (metas rendered only when enabled).
     'beacon' => [
         'enabled' => (bool) env('NEXO_BEACON_ENABLED', false),
 

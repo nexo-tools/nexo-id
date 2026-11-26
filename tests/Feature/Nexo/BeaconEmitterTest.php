@@ -27,13 +27,14 @@ it('renders no emitter metas when the beacon is off (default/standalone)', funct
         ->assertDontSee('nexo:beacon-origin', false);
 });
 
-it('ships the shareable snippet in the app bundle, honouring Do Not Track', function () {
-    $source = file_get_contents(resource_path('js/nexo-beacon.js'));
-
-    expect($source)
+it('ships the template emitter in the app bundle, honouring Do Not Track', function () {
+    // The transport (fetch text/plain, no credentials, keepalive — no CORS
+    // preflight) is pinned by BeaconClientTest; this only keeps the privacy
+    // switches and the payload shape in sight. The file is a byte-for-byte
+    // copy of templates/nexo-ui/beacon/nexo-beacon.js.
+    expect(file_get_contents(resource_path('js/nexo-beacon.js')))
         ->toContain('doNotTrack')            // honours DNT
         ->toContain('globalPrivacyControl')  // honours GPC
-        ->toContain('sendBeacon')            // non-blocking send
         ->toContain("event: 'pageview'");    // documented payload shape
 
     expect(file_get_contents(resource_path('js/app.js')))->toContain('nexo-beacon.js');

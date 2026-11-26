@@ -1,7 +1,8 @@
 <?php
 
 // Guardian: views consume the semantic utility layer (bg-surface, text-ink,
-// text-muted, border-line), never raw Tailwind palette classes.
+// text-muted, border-line), never raw Tailwind palette classes. Copy into
+// tests/Feature/Nexo/.
 //
 // Why this exists: NoHardcodedColorsTest only catches literal hex. The drift
 // that actually broke dark mode across the ecosystem was `bg-white

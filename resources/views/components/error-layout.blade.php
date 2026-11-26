@@ -15,7 +15,7 @@
     @include('partials.head')
 </head>
 <body class="flex min-h-full flex-col bg-bg font-sans text-ink antialiased">
-    <x-nexo-header brand="Nexo ID" mark="/ecosystem/nexoid.svg" :home="url('/')" />
+    <x-nexo-header />
 
     <main class="mx-auto flex w-full max-w-3xl flex-1 flex-col items-center justify-center gap-3 px-6 py-16 text-center">
         <p class="text-6xl font-bold tabular-nums text-primary">{{ $code }}</p>

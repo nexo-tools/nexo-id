@@ -9,7 +9,7 @@
 //
 // O espanhol (lang/es/legal.php) é o idioma fonte deste conteúdo; isto é a tradução.
 return [
-    'updated' => 'Última atualização: 28 de julho de 2026',
+    'updated' => 'Última atualização: 26 de novembro de 2026',
 
     'operator' => [
         'h' => 'Quem opera esta instância',
@@ -31,7 +31,7 @@ return [
             ],
             [
                 'h' => 'Suas sessões',
-                'p' => 'De cada início de sessão guardamos um identificador de sessão, o endereço IP e o navegador de onde você entrou, além da data da última atividade. Você pode ver todas em «Sua conta» e encerrar qualquer uma delas, ou todas as outras de uma vez. Elas existem para que você reconheça um acesso que não é seu, e são apagadas ao sair ou ao expirar.',
+                'p' => 'De cada início de sessão guardamos um identificador de sessão, o endereço IP e o navegador de onde você entrou, além da data da última atividade. Você pode ver todas em «Sua conta», com o navegador, a última atividade e as ferramentas em que cada uma foi usada, e encerrar qualquer uma delas, todas as outras ou todas de uma vez. Elas existem para que você reconheça um acesso que não é seu, e são apagadas ao sair ou ao expirar.',
             ],
             [
                 'h' => 'O que uma ferramenta recebe quando você a autoriza',
@@ -43,7 +43,7 @@ return [
             ],
             [
                 'h' => 'O que guardamos das autorizações',
-                'p' => 'Guardamos qual aplicação você autorizou, com quais escopos e até quando, em forma de códigos e tokens ligados à sua conta; eles expiram sozinhos e podem ser revogados. As ferramentas do próprio ecossistema Nexo são clientes de primeira parte e não mostram tela de consentimento, porque quem opera esta instância as registrou; uma aplicação de terceiros pede sua autorização. Ainda não existe uma tela no seu perfil para revisar e revogar esses acessos: se quiser cortar algum, escreva para o contato desta instância.',
+                'p' => 'Guardamos qual aplicação você autorizou, com quais escopos e até quando, em forma de códigos e tokens ligados à sua conta; eles expiram sozinhos e podem ser revogados. As ferramentas do próprio ecossistema Nexo são clientes de primeira parte e não mostram tela de consentimento, porque quem opera esta instância as registrou; uma aplicação de terceiros pede sua autorização. Em «Sua conta», «Ferramentas conectadas» mostra cada ferramenta em que você usou sua conta e quando foi a última vez; se quiser cortar o acesso de uma aplicação, escreva para o contato desta instância.',
             ],
             [
                 'h' => 'Cookies',
@@ -71,7 +71,7 @@ return [
             ],
             [
                 'h' => 'Seus direitos',
-                'p' => 'Seu nome de exibição e sua senha você mesmo altera em «Sua conta». Para pedir acesso aos seus dados, sua correção ou a exclusão da conta, escreva para quem opera esta instância (o contato está abaixo e na página de ajuda).',
+                'p' => 'Seu nome de exibição e sua senha você mesmo altera em «Sua conta», e ali mesmo pode excluir sua conta: são excluídos seu nome, seu e-mail, sua senha, suas sessões e os códigos e tokens das suas ferramentas, e cada ferramenta recebe o aviso de encerrar a sua sessão. O que você tem dentro de cada ferramenta não é excluído com isso. Para pedir acesso aos seus dados ou sua correção, escreva para quem opera esta instância (o contato está abaixo e na página de ajuda).',
             ],
             [
                 'h' => 'Outras instâncias',

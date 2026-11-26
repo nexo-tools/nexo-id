@@ -12,7 +12,7 @@
   },
   "shots": [
     {
-      "_comment": "producto step 3 — the devices you are signed in on. First in the list on purpose (see _sessions). Scrolled to the last section of the account page, which is where the session list lives.",
+      "_comment": "producto step 3 — the devices you are signed in on. First in the list on purpose (see _sessions). Scrolled to the session list ([data-sessions]); since 2026-11-26 the account page ends with «Borrar tu cuenta».",
       "name": "sesiones",
       "path": "/profile?lang=es",
       "viewport": { "width": 1280, "height": 800 },
@@ -20,7 +20,7 @@
       "out": "public/landing/shot-3",
       "fullPage": false,
       "auth": true,
-      "scrollTo": "main section:last-of-type"
+      "scrollTo": "[data-sessions]"
     },
     {
       "_comment": "producto step 3, on the phone.",
@@ -31,7 +31,7 @@
       "out": "public/landing/shot-3-mobile",
       "fullPage": false,
       "auth": true,
-      "scrollTo": "main section:last-of-type"
+      "scrollTo": "[data-sessions]"
     },
     {
       "_comment": "producto step 1 — the single account being born.",

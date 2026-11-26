@@ -4,19 +4,17 @@
     @include('partials.head')
 </head>
 <body class="flex min-h-full flex-col bg-bg font-sans text-ink antialiased">
-    {{-- The help link is no longer passed here: the canonical nexo-header bakes
-         it in as the first nav item (2026-08-02). --}}
-    <x-nexo-header brand="Nexo ID" mark="/ecosystem/nexoid.svg" :home="url('/')">
-        <x-slot:actions>
-            @auth
-                <a href="{{ url('/profile') }}" class="nexo-btn nexo-btn--ghost">{{ __('Your account') }}</a>
-            @else
-                <a href="{{ url('/login') }}" class="nexo-btn nexo-btn--ghost nexo-header__auth">{{ __('Sign in') }}</a>
-            @endauth
-        </x-slot:actions>
-    </x-nexo-header>
+    <a href="#contenido" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-surface focus:px-4 focus:py-2 focus:text-primary">
+        {{ __('Skip to content') }}
+    </a>
 
-    <main class="mx-auto flex w-full max-w-3xl flex-1 flex-col px-6 py-12">
+    {{-- Chrome v2: the same header on every layout, no props — brand, mark,
+         panel («Tu cuenta») and the account menu all come from the registry and
+         App\Support\NexoChrome. «Cerrar sesión» lives in the account menu and
+         the phone sheet, nowhere else. --}}
+    <x-nexo-header />
+
+    <main id="contenido" class="mx-auto flex w-full max-w-3xl flex-1 flex-col px-6 py-12">
         @yield('content')
     </main>
 

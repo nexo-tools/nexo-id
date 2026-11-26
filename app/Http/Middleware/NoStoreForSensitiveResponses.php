@@ -7,11 +7,13 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * `Cache-Control: no-store, private` on every response that a browser must not
- * keep: anything answered to a signed-in session, the account entry points
- * (login, register, password recovery, verification) and the OAuth/OIDC
- * surface (ADR-010, contract §3). Without it the back button after signing out
- * shows the account page again from the browser cache.
+ * The identity provider's own `no-store` paths, on top of the shared
+ * NexoNoStore (templates/nexo-ui: every signed-in response and the auth
+ * screens, identical in the 6 apps). What only Nexo ID has: the OAuth/OIDC
+ * browser surface (authorize, the end_session confirmation) and the sign-out
+ * pages, which a guest reaches too (ADR-010, contract §3). Without it the back
+ * button after signing out could bring a confirmation or a consent screen back
+ * from the browser cache.
  *
  * The public, cacheable OIDC documents (discovery and the JWKS) stay
  * cacheable: they hold no personal data and every client caches them.
@@ -20,17 +22,12 @@ class NoStoreForSensitiveResponses
 {
     /** @var array<int, string> */
     private const SENSITIVE_PATHS = [
-        'login',
         'logout',
         'logout/*',
-        'register',
-        'forgot-password',
-        'reset-password/*',
-        'verify-email',
-        'verify-email/*',
-        'email/*',
+        'signed-out',
         'profile',
         'profile/*',
+        'email/*',
         'oauth/*',
     ];
 
@@ -43,25 +40,10 @@ class NoStoreForSensitiveResponses
     {
         $response = $next($request);
 
-        if ($this->isSensitive($request)) {
+        if (! $request->is(...self::CACHEABLE_PATHS) && $request->is(...self::SENSITIVE_PATHS)) {
             $response->headers->set('Cache-Control', 'no-store, private');
         }
 
         return $response;
-    }
-
-    private function isSensitive(Request $request): bool
-    {
-        if ($request->is(...self::CACHEABLE_PATHS)) {
-            return false;
-        }
-
-        if ($request->is(...self::SENSITIVE_PATHS)) {
-            return true;
-        }
-
-        // Only consult the session guard when a session is running (the web
-        // group): resolving it on a bare route would try the remember cookie.
-        return $request->hasSession() && $request->user('web') !== null;
     }
 }

@@ -116,10 +116,28 @@ class IdpSessions
      */
     public function end(array $sids, string $reason): void
     {
+        $ended = $this->markEnded($sids, $reason);
+
+        if ($ended->isEmpty()) {
+            return;
+        }
+
+        $this->dispatcher->dispatch($this->deliveriesFor($ended));
+    }
+
+    /**
+     * Mark the given sids ended, without telling anybody. Returns the ones this
+     * call ended (already-ended or unknown sids are skipped).
+     *
+     * @param  array<int, string|null>  $sids
+     * @return Collection<int, IdpSession>
+     */
+    private function markEnded(array $sids, string $reason): Collection
+    {
         $sids = array_values(array_unique(array_filter($sids, fn (?string $sid): bool => is_string($sid) && $sid !== '')));
 
         if ($sids === []) {
-            return;
+            return collect();
         }
 
         $now = now();
@@ -127,18 +145,12 @@ class IdpSessions
         // Claimed one by one, each with its own "still open" guard: when two
         // requests end the same sid at once (a logout racing an end_session),
         // only the one whose UPDATE flips it notifies the tools.
-        $ended = IdpSession::query()->whereKey($sids)->whereNull('ended_at')->get(['sid', 'user_id'])
+        return IdpSession::query()->whereKey($sids)->whereNull('ended_at')->get(['sid', 'user_id'])
             ->filter(fn (IdpSession $session): bool => IdpSession::query()
                 ->whereKey($session->sid)
                 ->whereNull('ended_at')
                 ->update(['ended_at' => $now, 'ended_reason' => $reason]) === 1)
             ->values();
-
-        if ($ended->isEmpty()) {
-            return;
-        }
-
-        $this->dispatcher->dispatch($this->deliveriesFor($ended));
     }
 
     /**
@@ -158,16 +170,17 @@ class IdpSessions
 
     /**
      * Account deletion (§2.2): end every sid, and send each client the account
-     * ever used a `sub`-only logout_token, so the tool kills every session of
-     * that user — including ones whose sid this registry no longer knows.
+     * ever used ONE `sub`-only logout_token, so the tool kills every session of
+     * that user — including ones whose sid this registry no longer knows. The
+     * per-sid tokens are not sent on top: a sub-only token already covers them,
+     * and the person deleting the account should not wait for two rounds.
      *
      * MUST run before the user row is deleted: idp_sessions cascades on it,
-     * and the client list comes from there and from Passport's token table.
+     * and the client list comes from there and from Passport's token table
+     * (App\Actions\DeleteAccount calls it first, then deletes).
      */
     public function endForAccountDeletion(User $user): void
     {
-        $this->endAllForUser($user, 'account_deleted');
-
         $clientIds = IdpSessionClient::query()
             ->join('idp_sessions', 'idp_sessions.sid', '=', 'idp_session_clients.sid')
             ->where('idp_sessions.user_id', $user->getKey())
@@ -177,6 +190,11 @@ class IdpSessions
             ->unique()
             ->values()
             ->all();
+
+        $this->markEnded(
+            IdpSession::query()->where('user_id', $user->getKey())->whereNull('ended_at')->pluck('sid')->all(),
+            'account_deleted',
+        );
 
         $deliveries = DB::table('oauth_clients')
             ->whereIn('id', $clientIds)

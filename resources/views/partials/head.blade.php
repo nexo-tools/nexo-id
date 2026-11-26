@@ -5,7 +5,8 @@
      Title precedence: a page inside layouts.app can own the whole SEO head via the
      `seo` section (<x-nexo-seo> emits its own <title>); otherwise the `title`
      section wins, then a $title handed over by the including view (the shells with
-     no section stack), then the app name. --}}
+     no section stack). Either way it reads «<Página> — Nexo ID» (STANDARD
+     «Títulos», PageTitleTest): the brand is the registry name, never APP_NAME. --}}
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -13,7 +14,7 @@
 @hasSection('seo')
     @yield('seo')
 @else
-    <title>@yield('title', $title ?? config('app.name'))</title>
+    <title>{{ \App\Support\NexoChrome::pageTitle($__env->yieldContent('title', $title ?? '')) }}</title>
 @endif
 @yield('head-meta')
 <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="48x48">

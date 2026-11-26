@@ -66,7 +66,7 @@ it('AC-LOGOUT-1: after central logout a silent authorize requires re-login', fun
     expect((string) $before->headers->get('Location'))->toContain('code=');
 
     // Central logout ends the Nexo ID session.
-    $this->post('/logout')->assertRedirect(route('home'));
+    $this->post('/logout')->assertRedirect(route('signed-out'));
 
     // A fresh (unauthenticated) authorize now goes to login instead of a code.
     $after = $this->get(authorizeRequest($client->getKey(), $challenge));
@@ -153,8 +153,7 @@ it('AC-LOGOUT-5: without an id_token_hint, no post_logout_redirect_uri is honour
 
     // Confirming signs out and lands on our own page, never the caller's URL.
     $confirmed = $this->post(route('openid.end_session.confirm'));
-    $confirmed->assertOk()->assertViewIs('auth.logged-out');
-    expect($confirmed->headers->get('Location'))->toBeNull();
+    $confirmed->assertRedirect(route('signed-out'));
 });
 
 it('AC-LOGOUT-6: discovery advertises the end_session_endpoint', function () {

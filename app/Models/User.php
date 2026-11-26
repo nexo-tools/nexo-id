@@ -50,6 +50,23 @@ class User extends Authenticatable implements MustVerifyEmail, OAuthenticatable
     }
 
     /**
+     * `name` is the display name under the name every other Nexo app (and the
+     * OIDC `name` claim) uses for it. The shared chrome (templates/nexo-ui:
+     * account menu, phone sheet, initials) and its guardians read and write
+     * `name`, identical in the 6 apps; here the column is `display_name`.
+     * Not a second column: reading and writing both land on display_name.
+     *
+     * @return Attribute<string, string>
+     */
+    protected function name(): Attribute
+    {
+        return Attribute::make(
+            get: fn (mixed $value, array $attributes): string => (string) ($attributes['display_name'] ?? ''),
+            set: fn (string $value): array => ['display_name' => $value],
+        );
+    }
+
+    /**
      * Both auth mails go out queued, in this product's template and language,
      * with the locale pinned at dispatch (family rules C2 and C3). The queue
      * worker has no request to read a locale from, which is exactly how the

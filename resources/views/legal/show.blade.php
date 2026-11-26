@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('seo')
-    <x-nexo-seo :title="$title.' — '.config('app.name')" :description="$description" :canonical="url()->current()" />
+    <x-nexo-seo :title="\App\Support\NexoChrome::pageTitle($title)" :description="$description" :canonical="url()->current()" />
 @endsection
 
 @section('content')

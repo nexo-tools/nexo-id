@@ -89,7 +89,7 @@ class SessionController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login')->with('status', __('You signed out on every device.'));
+        return redirect()->route('signed-out', ['reason' => 'everywhere']);
     }
 
     /**

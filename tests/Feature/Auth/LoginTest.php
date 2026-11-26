@@ -81,7 +81,7 @@ it('AC-LOGIN-5: logout invalidates the session and rotates the csrf token', func
     $this->actingAs($user);
     $tokenBefore = csrf_token();
 
-    $this->post('/logout')->assertRedirect(route('home'));
+    $this->post('/logout')->assertRedirect(route('signed-out'));
 
     $this->assertGuest();
     expect(csrf_token())->not->toBe($tokenBefore);

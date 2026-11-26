@@ -9,7 +9,7 @@
 //
 // Spanish (lang/es/legal.php) is the source of this content; this is its translation.
 return [
-    'updated' => 'Last updated: 28 July 2026',
+    'updated' => 'Last updated: 26 November 2026',
 
     'operator' => [
         'h' => 'Who runs this instance',
@@ -31,7 +31,7 @@ return [
             ],
             [
                 'h' => 'Your sessions',
-                'p' => 'For every sign-in we store a session identifier, the IP address and the browser you signed in from, and the time of the last activity. You can see them all under "Your account" and close any of them, or every other one at once. They exist so you can spot an access that is not yours, and they are deleted when you sign out or when they expire.',
+                'p' => 'For every sign-in we store a session identifier, the IP address and the browser you signed in from, and the time of the last activity. You can see them all under "Your account", with the browser, the last activity and the tools each one was used in, and close any of them, every other one, or all of them at once. They exist so you can spot an access that is not yours, and they are deleted when you sign out or when they expire.',
             ],
             [
                 'h' => 'What a tool receives when you authorize it',
@@ -43,7 +43,7 @@ return [
             ],
             [
                 'h' => 'What we store about authorizations',
-                'p' => 'We store which application you authorized, with which scopes and until when, as codes and tokens tied to your account; they expire on their own and can be revoked. The Nexo tools themselves are first-party clients and show no consent screen, because whoever runs this instance registered them; a third-party application does ask for your consent. There is no screen in your profile yet to review and revoke those grants: if you want one cut off, write to this instance\'s contact.',
+                'p' => 'We store which application you authorized, with which scopes and until when, as codes and tokens tied to your account; they expire on their own and can be revoked. The Nexo tools themselves are first-party clients and show no consent screen, because whoever runs this instance registered them; a third-party application does ask for your consent. Under "Your account", "Connected tools" shows every tool where you used your account and when you last did; if you want an application\'s access cut off, write to this instance\'s contact.',
             ],
             [
                 'h' => 'Cookies',
@@ -71,7 +71,7 @@ return [
             ],
             [
                 'h' => 'Your rights',
-                'p' => 'You change your display name and your password yourself under "Your account". To request access to your data, its correction or the deletion of your account, write to whoever runs this instance (the contact is below and on the help page).',
+                'p' => 'You change your display name and your password yourself under "Your account", and you can delete your account right there: your name, your email, your password, your sessions and your tools\' codes and tokens are deleted, and every tool is told to sign you out. What you keep inside each tool is not deleted with this. To request access to your data or its correction, write to whoever runs this instance (the contact is below and on the help page).',
             ],
             [
                 'h' => 'Other instances',

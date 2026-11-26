@@ -13,6 +13,7 @@ use App\Http\Controllers\Oidc\EndSessionController;
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SessionController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'home')->name('home');
@@ -42,6 +43,17 @@ Route::get('/terminos', [LegalController::class, 'terms'])->name('legal.terms');
 Route::get('/oauth/logout', EndSessionController::class)->name('openid.end_session_endpoint');
 Route::post('/oauth/logout', [EndSessionController::class, 'confirm'])->name('openid.end_session.confirm');
 
+// «Cerraste sesión en todo Nexo»: where every sign-out of Nexo ID lands, as a
+// GET (a reload never posts again). Someone signed in has not signed out: the
+// account. `reason=everywhere` is «Cerrar sesión en todos los dispositivos».
+Route::get('/signed-out', function (Request $request) {
+    if ($request->user() !== null) {
+        return redirect()->route('profile.show');
+    }
+
+    return view('auth.logged-out', ['reason' => $request->query('reason') === 'everywhere' ? 'everywhere' : null]);
+})->name('signed-out');
+
 Route::get('/sitemap.xml', function () {
     // Every public, indexable page. The auth and OAuth surface is disallowed in
     // robots.txt and must never be listed here.
@@ -64,6 +76,7 @@ Route::get('/robots.txt', function () {
         'Disallow: /reset-password/',
         'Disallow: /verify-email',
         'Disallow: /profile',
+        'Disallow: /signed-out',
         'Disallow: /oauth/',
         'Disallow: /email/',
         '',
@@ -91,8 +104,11 @@ Route::middleware('guest')->group(function () {
         ->middleware('throttle:5,1')->name('password.store');
 });
 
+// «Cerrar sesión» works with or without a session: one that already expired
+// lands on the signed-out page instead of the login form.
+Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+
 Route::middleware('auth')->group(function () {
-    Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
     // «Cerrar sesión en todos los dispositivos» (D3, ADR-010): every session of
     // the account, this one included, and every tool signed in through them.
     Route::post('logout/everywhere', [SessionController::class, 'destroyAll'])->name('logout.everywhere');
@@ -114,5 +130,15 @@ Route::middleware('auth')->group(function () {
         Route::put('profile/password', [PasswordController::class, 'update'])->name('password.update');
         Route::delete('profile/sessions/{id}', [SessionController::class, 'destroy'])->name('sessions.destroy');
         Route::delete('profile/sessions', [SessionController::class, 'destroyOthers'])->name('sessions.destroy-others');
+        // «Borrar mi cuenta» (H-nexoid-10): password-confirmed, throttled like
+        // the other password checks.
+        Route::delete('profile', [ProfileController::class, 'destroy'])
+            ->middleware('throttle:5,1')->name('profile.destroy');
     });
 });
+
+// Last route: an unmatched URL 404s INSIDE the web group, so the error page
+// knows who is signed in and shows the same header as everywhere else
+// (templates/nexo-ui/pages/README.md, HeaderEverywhereTest). A POST to a URL
+// that does not exist still answers 405, on purpose.
+Route::fallback(fn () => abort(404))->name('fallback');

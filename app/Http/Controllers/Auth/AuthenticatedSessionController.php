@@ -30,17 +30,24 @@ class AuthenticatedSessionController extends Controller
     /**
      * Sign out of Nexo ID on this device: ends this device's IdP session, and
      * with it the tools that signed in through it (back-channel, ADR-010).
+     *
+     * Reachable without a session on purpose: «Cerrar sesión» on a page whose
+     * session already expired used to bounce to /login, as if signing out had
+     * failed. With nothing left to end it lands on the same signed-out page.
      */
     public function destroy(Request $request, IdpSessions $sessions): RedirectResponse
     {
         $sessions->end([$sessions->current($request->session())], 'logout');
 
-        Auth::guard('web')->logout();
+        if (Auth::guard('web')->check()) {
+            Auth::guard('web')->logout();
+        }
 
         // Invalidate the session and rotate the CSRF token on logout (AC-LOGIN-5).
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('home');
+        // «Cerraste sesión en todo Nexo», with the way back in (item 9 of F3).
+        return redirect()->route('signed-out');
     }
 }

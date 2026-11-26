@@ -36,21 +36,32 @@
 
 @section('seo')
     <x-nexo-seo
-        :title="config('app.name').' — '.__('One account for the whole Nexo ecosystem.')"
+        :title="\App\Support\NexoChrome::homeTitle()"
         :description="__('Sign in once and use every Nexo tool — open source, OpenID Connect.')"
         :canonical="url('/')" />
 @endsection
 
 @section('content')
     <section data-landing-section="hero">
+        {{-- Where a finished account deletion lands (ProfileController::destroy):
+             the person is signed out, so the landing carries the notice. --}}
+        @if (session('status'))
+            <p class="nexo-flash mb-8" role="status">{{ session('status') }}</p>
+        @endif
         <h1 class="max-w-2xl text-4xl font-semibold tracking-tight text-ink sm:text-5xl">{{ __('One account for the whole Nexo ecosystem.') }}</h1>
         <p class="mt-5 max-w-xl text-lg text-muted">{{ __('Sign in once and use every Nexo tool — open source, OpenID Connect.') }}</p>
+        {{-- The visitor CTAs follow the same decisions as the header
+             (NexoChrome), never a fixed route('register') / route('login'). --}}
         <div class="mt-8 flex flex-wrap gap-3">
             @auth
-                <a class="nexo-btn nexo-btn--primary" href="{{ url('/profile') }}">{{ __('Go to your account') }}</a>
+                <a class="nexo-btn nexo-btn--primary" href="{{ \App\Support\NexoChrome::panelUrl() }}">{{ __('Go to your account') }}</a>
             @else
-                <a class="nexo-btn nexo-btn--primary" href="{{ url('/register') }}">{{ __('Create your account') }}</a>
-                <a class="nexo-btn nexo-btn--ghost" href="{{ url('/login') }}">{{ __('Sign in') }}</a>
+                @if ($signUpUrl = \App\Support\NexoChrome::signUpUrl())
+                    <a class="nexo-btn nexo-btn--primary" href="{{ $signUpUrl }}">{{ __('Create your account') }}</a>
+                @endif
+                @if ($signInUrl = \App\Support\NexoChrome::signInUrl())
+                    <a class="nexo-btn nexo-btn--ghost" href="{{ $signInUrl }}">{{ __('Sign in') }}</a>
+                @endif
             @endauth
         </div>
     </section>
@@ -120,9 +131,11 @@
 
     <section data-landing-section="cierre">
         @auth
-            <a class="nexo-btn nexo-btn--primary" href="{{ url('/profile') }}">{{ __('Go to your account') }}</a>
+            <a class="nexo-btn nexo-btn--primary" href="{{ \App\Support\NexoChrome::panelUrl() }}">{{ __('Go to your account') }}</a>
         @else
-            <a class="nexo-btn nexo-btn--primary" href="{{ url('/register') }}">{{ __('Create your account') }}</a>
+            @if ($signUpUrl = \App\Support\NexoChrome::signUpUrl())
+                <a class="nexo-btn nexo-btn--primary" href="{{ $signUpUrl }}">{{ __('Create your account') }}</a>
+            @endif
         @endauth
     </section>
 @endsection

@@ -32,6 +32,14 @@ use Throwable;
  * Without a valid hint and with a session, it asks first: «¿Cerrar sesión en
  * todo Nexo?», a POST with CSRF (confirm()). Without a session there is
  * nothing to end: the signed-out page. Never an open redirect.
+ *
+ * Without a hint a tool still says who it is (CONTRATO-F3 §0.1, v2.1 item 2:
+ * its logout with an expired session, which has no id_token left to send):
+ * `client_id` + `post_logout_redirect_uri`. The URI is honoured only when it is
+ * exactly a registered redirect URI of THAT client (OIDC RP-Initiated Logout
+ * §2: client_id is how the OP attributes the URI without a hint) — after the
+ * confirmation with a session, at once without one. With a hint as well, the
+ * client_id must be one of the hint's audiences.
  */
 class EndSessionController
 {
@@ -44,24 +52,32 @@ class EndSessionController
     {
         $postLogoutRedirectUri = (string) $request->query('post_logout_redirect_uri', '');
         $state = (string) $request->query('state', '');
+        $clientId = (string) $request->query('client_id', '');
         $hint = $this->parseHint((string) $request->query('id_token_hint', ''));
         $user = Auth::guard('web')->user();
 
         $hintIsValid = $hint !== null && ($user === null || (string) $user->getAuthIdentifier() === $hint['sub']);
 
         if (! $hintIsValid) {
-            return $user !== null ? view('auth.logout-confirm') : view('auth.logged-out');
+            // No hint to vouch for the request: the client_id alone may name
+            // where to go, never what to end.
+            $return = $this->registeredReturn([$clientId], $postLogoutRedirectUri);
+
+            if ($user !== null) {
+                return view('auth.logout-confirm', [
+                    'return' => $return !== null ? ['client_id' => $clientId, 'post_logout_redirect_uri' => $postLogoutRedirectUri, 'state' => $state] : null,
+                ]);
+            }
+
+            return $return !== null ? redirect()->away($this->withState($return, $state)) : view('auth.logged-out');
         }
 
         $this->endBrowserSession($request, also: $hint['sid']);
 
-        if ($postLogoutRedirectUri !== '' && $this->isRegistered($hint['aud'], $postLogoutRedirectUri)) {
-            $target = $postLogoutRedirectUri;
-            if ($state !== '') {
-                $target .= (str_contains($target, '?') ? '&' : '?').http_build_query(['state' => $state]);
-            }
+        $audiences = $clientId === '' ? $hint['aud'] : (in_array($clientId, $hint['aud'], true) ? [$clientId] : []);
 
-            return redirect()->away($target);
+        if (($return = $this->registeredReturn($audiences, $postLogoutRedirectUri)) !== null) {
+            return redirect()->away($this->withState($return, $state));
         }
 
         // Unknown client or an unregistered URI: our own page, never a redirect
@@ -71,14 +87,23 @@ class EndSessionController
 
     /**
      * The confirmed sign-out (POST, CSRF-protected) from «¿Cerrar sesión en
-     * todo Nexo?». Ends this browser's session; no redirect, since nothing
-     * here vouches for a destination.
+     * todo Nexo?». Ends this browser's session, then goes back to the tool
+     * that asked when its client_id + post_logout_redirect_uri pair is
+     * registered (checked again here: the form is not trusted), or to our own
+     * signed-out page.
      */
-    public function confirm(Request $request): View
+    public function confirm(Request $request): RedirectResponse
     {
         $this->endBrowserSession($request);
 
-        return view('auth.logged-out');
+        $return = $this->registeredReturn(
+            [(string) $request->input('client_id', '')],
+            (string) $request->input('post_logout_redirect_uri', ''),
+        );
+
+        return $return !== null
+            ? redirect()->away($this->withState($return, (string) $request->input('state', '')))
+            : redirect()->route('signed-out');
     }
 
     /**
@@ -141,22 +166,36 @@ class EndSessionController
     }
 
     /**
-     * True only when $uri is exactly a registered redirect URI of one of the
-     * hint's audiences.
+     * $uri when it is exactly a registered redirect URI of one of $audiences
+     * (non-revoked clients only), else null. Never a caller-supplied
+     * destination that no client registered.
      *
      * @param  array<int, string>  $audiences
      */
-    private function isRegistered(array $audiences, string $uri): bool
+    private function registeredReturn(array $audiences, string $uri): ?string
     {
+        if ($uri === '') {
+            return null;
+        }
+
         foreach ($audiences as $clientId) {
+            if ($clientId === '') {
+                continue;
+            }
+
             $client = $this->clients->find($clientId);
             // redirect_uris is a Passport accessor (Attribute) casting to array.
-            $registered = $client !== null ? (array) $client->getAttribute('redirect_uris') : [];
+            $registered = $client !== null && ! $client->getAttribute('revoked') ? (array) $client->getAttribute('redirect_uris') : [];
             if (in_array($uri, $registered, true)) {
-                return true;
+                return $uri;
             }
         }
 
-        return false;
+        return null;
+    }
+
+    private function withState(string $target, string $state): string
+    {
+        return $state === '' ? $target : $target.(str_contains($target, '?') ? '&' : '?').http_build_query(['state' => $state]);
     }
 }

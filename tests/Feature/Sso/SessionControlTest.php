@@ -318,7 +318,7 @@ it('AC-BCL-P2: the logout_token is a JWT per Back-Channel Logout 1.0, signed wit
     $idToken = scIdToken($client);
     $idClaims = scVerify($idToken);
 
-    $this->post('/logout')->assertRedirect(route('home'));
+    $this->post('/logout')->assertRedirect(route('signed-out'));
 
     $recorded = Http::recorded()->map(fn (array $pair) => $pair[0])->values();
     expect($recorded)->toHaveCount(1);
@@ -472,8 +472,7 @@ it('AC-BCL-P3: «Cerrar sesión en todos los dispositivos» ends every sid, this
     scSessionRow($user, 'other-row', $other);
 
     $this->post(route('logout.everywhere'))
-        ->assertRedirect(route('login'))
-        ->assertSessionHas('status');
+        ->assertRedirect(route('signed-out', ['reason' => 'everywhere']));
 
     expect(collect(scSentLogoutTokens())->pluck('claims.sid')->sort()->values()->all())
         ->toBe(collect([$current, $other])->sort()->values()->all());
@@ -594,7 +593,7 @@ it('AC-BCL-P4: a client that is down does not block the logout and is queued wit
         scIdToken($client);
     }
 
-    $this->post('/logout')->assertRedirect(route('home'));
+    $this->post('/logout')->assertRedirect(route('signed-out'));
     $this->assertGuest('web');
 
     // Transient failures are queued, first retry one minute later…
@@ -678,7 +677,7 @@ it('AC-BCL-P4: a redirect from the tool is not a delivery: never followed, queue
     $this->actingAs($user);
     scIdToken(scClient('tool-a.test'));
 
-    $this->post('/logout')->assertRedirect(route('home'));
+    $this->post('/logout')->assertRedirect(route('signed-out'));
 
     // Only the POST went out: the redirect's target was never fetched.
     expect(Http::recorded()->map(fn (array $pair): string => $pair[0]->method().' '.$pair[0]->url())->all())
@@ -700,7 +699,7 @@ it('AC-BCL-P4: on a synchronous queue a tool that is down never fails the sign-o
     $this->actingAs($user);
     $sid = scVerify(scIdToken(scClient('tool-down.test')))['sid'];
 
-    $this->post('/logout')->assertRedirect(route('home'));
+    $this->post('/logout')->assertRedirect(route('signed-out'));
 
     $this->assertGuest('web');
     expect(IdpSession::query()->find($sid)->ended_reason)->toBe('logout');
@@ -741,7 +740,7 @@ it('AC-BCL-P6: end_session without a hint asks first, and only the POST signs ou
     expect(IdpSession::query()->find($sid)->ended_at)->toBeNull();
     expect(scSentLogoutTokens())->toBe([]);
 
-    $this->post(route('openid.end_session.confirm'))->assertOk()->assertViewIs('auth.logged-out');
+    $this->post(route('openid.end_session.confirm'))->assertRedirect(route('signed-out'));
 
     $this->assertGuest('web');
     expect(IdpSession::query()->find($sid)->ended_reason)->toBe('end_session');

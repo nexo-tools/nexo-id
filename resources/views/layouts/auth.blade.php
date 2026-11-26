@@ -6,16 +6,20 @@
     <meta name="robots" content="noindex">
     @include('partials.head')
 </head>
-<body class="flex min-h-full flex-col bg-bg text-ink antialiased">
+<body class="flex min-h-full flex-col bg-bg font-sans text-ink antialiased">
     {{-- Full family chrome. This layout used to be the ecosystem's documented
          "focused auth" exception (no header, just a loose row of locale + theme
          controls), but crossing from any tool's sign-in to the IdP's made the
          family look broken, so Alvaro removed the exception on 2026-08-02:
          six tools, one chrome. The brand now lives in the header's wordmark —
          no centered wordmark above the card. --}}
-    <x-nexo-header brand="Nexo ID" mark="/ecosystem/nexoid.svg" />
+    <a href="#contenido" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-surface focus:px-4 focus:py-2 focus:text-primary">
+        {{ __('Skip to content') }}
+    </a>
 
-    <main class="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-6 py-12">
+    <x-nexo-header />
+
+    <main id="contenido" class="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-6 py-12">
         <x-nexo-auth-card>
             <h1 class="mb-6 text-xl font-semibold">@yield('heading')</h1>
             @yield('content')

@@ -9,7 +9,7 @@
 //
 // El español es el idioma fuente de este contenido; en/pt son su traducción.
 return [
-    'updated' => 'Última actualización: 28 de julio de 2026',
+    'updated' => 'Última actualización: 26 de noviembre de 2026',
 
     'operator' => [
         'h' => 'Quién opera esta instancia',
@@ -31,7 +31,7 @@ return [
             ],
             [
                 'h' => 'Tus sesiones',
-                'p' => 'De cada inicio de sesión guardamos un identificador de sesión, la dirección IP y el navegador desde el que entraste, y la fecha de la última actividad. Puedes verlas todas en «Tu cuenta» y cerrar cualquiera de ellas, o todas las demás a la vez. Existen para que reconozcas un acceso que no sea tuyo, y se borran al cerrar sesión o al caducar.',
+                'p' => 'De cada inicio de sesión guardamos un identificador de sesión, la dirección IP y el navegador desde el que entraste, y la fecha de la última actividad. Puedes verlas todas en «Tu cuenta», con el navegador, la última actividad y las herramientas donde se usó cada una, y cerrar cualquiera de ellas, todas las demás o todas a la vez. Existen para que reconozcas un acceso que no sea tuyo, y se borran al cerrar sesión o al caducar.',
             ],
             [
                 'h' => 'Qué recibe una herramienta cuando la autorizas',
@@ -43,7 +43,7 @@ return [
             ],
             [
                 'h' => 'Qué guardamos de las autorizaciones',
-                'p' => 'Guardamos qué aplicación autorizaste, con qué permisos y hasta cuándo, en forma de códigos y tokens asociados a tu cuenta; caducan solos y se pueden revocar. Las herramientas del propio ecosistema Nexo son de primera parte y no muestran pantalla de consentimiento, porque las registra quien opera esta instancia; una aplicación de terceros sí te pide permiso. Todavía no hay una pantalla en tu perfil para revisar y revocar esos accesos: si quieres cortar uno, escribe al contacto de esta instancia.',
+                'p' => 'Guardamos qué aplicación autorizaste, con qué permisos y hasta cuándo, en forma de códigos y tokens asociados a tu cuenta; caducan solos y se pueden revocar. Las herramientas del propio ecosistema Nexo son de primera parte y no muestran pantalla de consentimiento, porque las registra quien opera esta instancia; una aplicación de terceros sí te pide permiso. En «Tu cuenta», «Herramientas conectadas» muestra cada herramienta donde usaste tu cuenta y cuándo fue la última vez; si quieres cortar el acceso de una aplicación, escribe al contacto de esta instancia.',
             ],
             [
                 'h' => 'Cookies',
@@ -71,7 +71,7 @@ return [
             ],
             [
                 'h' => 'Tus derechos',
-                'p' => 'Tu nombre visible y tu contraseña los cambias tú desde «Tu cuenta». Para pedir acceso a tus datos, su corrección o el borrado de tu cuenta, escribe a quien opera esta instancia (el contacto está más abajo y en la página de ayuda).',
+                'p' => 'Tu nombre visible y tu contraseña los cambias tú desde «Tu cuenta», y desde ahí mismo puedes borrar tu cuenta: se borran tu nombre, tu correo, tu contraseña, tus sesiones y los códigos y tokens de tus herramientas, y cada herramienta recibe el aviso de cerrar tu sesión. Lo que tengas dentro de cada herramienta no se borra con esto. Para pedir acceso a tus datos o su corrección, escribe a quien opera esta instancia (el contacto está más abajo y en la página de ayuda).',
             ],
             [
                 'h' => 'Otras instancias',

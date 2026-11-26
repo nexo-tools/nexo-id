@@ -73,14 +73,15 @@
 
    | Event in Nexo ID | Sids that end | Also |
    |---|---|---|
-   | `POST /logout` | this device's | — |
+   | `POST /logout` | this device's | lands on `GET /signed-out` («Cerraste sesión en todo Nexo», «Volver a entrar»). Works without a session too (an expired page lands there instead of `/login`); a `419` on it shows the confirmation below |
    | `GET /oauth/logout` with a valid `id_token_hint` | the hint's and this device's | redirects to `post_logout_redirect_uri` only if it is a registered redirect URI of the hint's client |
-   | `GET /oauth/logout` without a valid hint, with a session | none until confirmed: «¿Cerrar sesión en todo Nexo?», a CSRF-protected `POST /oauth/logout` | mitigates the forced logout by link (S9) |
+   | `GET /oauth/logout` without a valid hint, with a session | none until confirmed: «¿Cerrar sesión en todo Nexo?», a CSRF-protected `POST /oauth/logout` | mitigates the forced logout by link (S9). With `client_id` + `post_logout_redirect_uri` registered for **that** client (a tool whose session expired has no id_token left), confirming returns there (with `state`); otherwise `/signed-out` |
+   | `GET /oauth/logout` without a hint and without a session | none (nothing to end) | redirects at once to `post_logout_redirect_uri` when it is registered for `client_id`; otherwise the signed-out page |
    | «Cerrar esta sesión» (session list) | that session's (read from its database row) | rotates the remember token; this device keeps its cookie, re-issued |
    | «Cerrar las demás sesiones» | every sid of the account but this one | same rotation and re-issue |
    | «Cerrar sesión en todos los dispositivos» (`POST /logout/everywhere`, new) | every sid, this one included | rotates the remember token |
    | Password change / reset | change: all but this one; reset: all | rotates the remember token (it already did); a change re-issues this device's cookie |
-   | Account deletion (no UI yet) | all | plus a `sub`-only logout_token to every client the account ever used (`IdpSessions::endForAccountDeletion`, to be called **before** the user row is deleted) |
+   | Account deletion («Borrar mi cuenta» in `/profile`, password-confirmed; `App\Actions\DeleteAccount`) | all, without per-sid tokens | ONE `sub`-only logout_token to every client the account ever used (`IdpSessions::endForAccountDeletion`, called **before** the rows go). Then, in one transaction, every row of the account by name — Passport refresh → access tokens → auth/device codes, clients the account owns with their tokens, browser sessions, the password-reset row, `idp_session_clients`, `idp_sessions`, the user. This resolves DATABASE-STANDARD §12 #2 («Passport tables without FKs — gate before account deletion») explicitly: no FKs were added; `AccountCenterTest` pins that no row of the account survives and that a failure halfway leaves it whole |
 
    A hint is valid when its signature verifies against our key (expiry is ignored — logout hints are routinely
    expired) and, if the browser has a session, its `sub` is that account: a genuine id_token of *another* account

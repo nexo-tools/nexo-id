@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\User;
+
 it('AC-I18N-1: defaults to english', function () {
     $this->get('/')->assertSee('One account for the whole Nexo ecosystem.');
 });
@@ -31,4 +33,19 @@ it('AC-I18N-1: exposes the locale switcher', function () {
         ->assertSee('lang=en', false)
         ->assertSee('lang=es', false)
         ->assertSee('lang=pt', false);
+});
+
+it('H-nexoid-12: the framework messages speak the page language (es/pt), not English', function () {
+    User::factory()->create(['email' => 'someone@example.test']);
+
+    foreach (['es' => 'El correo o la contraseña no coinciden.', 'pt' => 'O e-mail ou a senha não conferem.'] as $locale => $message) {
+        $this->withUnencryptedCookie('nexo-lang', $locale)->from('/login')
+            ->post('/login', ['email' => 'someone@example.test', 'password' => 'wrong-password'])
+            ->assertSessionHasErrors(['email' => $message]);
+    }
+
+    app()->setLocale('es');
+    expect(__('validation.current_password'))->toBe('La contraseña no es correcta.')
+        ->and(__('validation.required', ['attribute' => __('validation.attributes.display_name')]))->toBe('Completa el nombre visible.')
+        ->and(__('passwords.sent'))->not->toContain('emailed');
 });
