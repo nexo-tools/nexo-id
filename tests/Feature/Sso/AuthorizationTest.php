@@ -1,6 +1,12 @@
 <?php
 
+use App\Http\Middleware\EnsureIdpSessionActive;
+use App\Http\Middleware\RequireVerifiedForAuthorize;
+use App\Http\Middleware\SignUpOnPromptCreate;
 use App\Models\User;
+use Illuminate\Contracts\Http\Kernel;
+use Illuminate\Routing\SortedMiddleware;
+use Illuminate\Session\Middleware\StartSession;
 use Laravel\Passport\ClientRepository;
 
 /** Create a first-party public (PKCE) authorization-code client. */
@@ -254,4 +260,27 @@ it('AC-CLIENT-2: rejects a redirect_uri that is not registered exactly', functio
 
     expect((string) $response->headers->get('Location'))->not->toContain('code=');
     expect($response->getStatusCode())->toBeGreaterThanOrEqual(400)->toBeLessThan(500);
+});
+
+it('AC-AUTH-3: the verified-email gate and prompt=create run after the session started', function () {
+    // The tests' actingAs() sets the user on the guard directly, so the gate
+    // passes here even in an order where a real browser's session is not read
+    // yet. Until 2026-11-26 it sat in config('passport.middleware'), which runs
+    // BEFORE the web group: a real unverified session looked like a guest and
+    // got its code. Pin the effective order instead.
+    app(Kernel::class); // syncs the middleware groups to the router
+    $router = app('router');
+    $route = $router->getRoutes()->getByName('passport.authorizations.authorize');
+    $middleware = (new SortedMiddleware(
+        $router->middlewarePriority,
+        $router->resolveMiddleware($route->gatherMiddleware(), $route->excludedMiddleware()),
+    ))->all();
+
+    $at = fn (string $class): int|false => array_search($class, $middleware, true);
+
+    foreach ([RequireVerifiedForAuthorize::class, SignUpOnPromptCreate::class] as $check) {
+        expect($at($check))->not->toBeFalse("{$check} is not on the authorize route.")
+            ->and($at($check))->toBeGreaterThan($at(StartSession::class))
+            ->and($at($check))->toBeGreaterThan($at(EnsureIdpSessionActive::class));
+    }
 });

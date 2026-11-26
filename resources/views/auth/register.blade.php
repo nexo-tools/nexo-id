@@ -4,6 +4,12 @@
 @section('heading', __('Create your account'))
 
 @section('content')
+    @if ($tool ?? null)
+        {{-- Only for a genuine authorize request (App\Auth\SignUpDestination):
+             after verifying the email the person goes on to that tool. --}}
+        <p class="-mt-4 mb-6 text-sm text-muted" data-signup-tool>{{ __('To continue to :app', ['app' => $tool]) }}</p>
+    @endif
+
     <form method="POST" action="{{ route('register') }}">
         @csrf
 

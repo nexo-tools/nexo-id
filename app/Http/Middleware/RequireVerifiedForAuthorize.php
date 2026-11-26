@@ -12,8 +12,12 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Gate the OAuth authorization endpoint on a verified email (AC-AUTH-3): a
  * logged-in but unverified user cannot obtain an authorization code and is sent
- * to the verification notice. Applied to all Passport routes via
- * config('passport.middleware'), but only acts on the authorize route.
+ * to the verification notice. Appended to the `web` group (bootstrap/app.php)
+ * and only acts on the authorize route. It must run AFTER the session starts:
+ * from config('passport.middleware') — where it lived until 2026-11-26 — it
+ * ran before the web group, read no user at all and let unverified accounts
+ * get codes (only the tests' actingAs() made it look enforced;
+ * AuthorizationTest pins the order now).
  *
  * prompt=none exception (silent SSO, AC-PROMPT-NONE-3): a silent attempt must
  * never render UI, so instead of the verification notice the client gets an

@@ -4,8 +4,10 @@ use App\Http\ExpiredSignOut;
 use App\Http\Middleware\EnsureIdpSessionActive;
 use App\Http\Middleware\NexoNoStore;
 use App\Http\Middleware\NoStoreForSensitiveResponses;
+use App\Http\Middleware\RequireVerifiedForAuthorize;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
+use App\Http\Middleware\SignUpOnPromptCreate;
 use App\Support\OperatorAlerts;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -34,6 +36,14 @@ return Application::configure(basePath: dirname(__DIR__))
             // Last, so a browser whose sid was ended elsewhere is signed out
             // before the route runs — and still gets the headers above.
             EnsureIdpSessionActive::class,
+            // The two checks of /oauth/authorize that read the signed-in user
+            // (they pass through on every other route). Here and not in
+            // config('passport.middleware'): those run before this group, with
+            // the session not started yet, so they saw every visitor as a
+            // guest and a code went to unverified accounts. After
+            // EnsureIdpSessionActive, so an ended sid is already a guest.
+            RequireVerifiedForAuthorize::class,
+            SignUpOnPromptCreate::class,
         ]);
 
         // Shared preference cookies (theme + language) are scoped to the parent
