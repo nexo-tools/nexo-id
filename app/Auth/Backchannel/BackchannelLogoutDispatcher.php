@@ -5,9 +5,11 @@ namespace App\Auth\Backchannel;
 use App\Jobs\DeliverBackchannelLogout;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Http\Client\Response;
+use Illuminate\Queue\SyncQueue;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Queue;
 use Throwable;
 
 /**
@@ -16,8 +18,8 @@ use Throwable;
  * One synchronous attempt per delivery, all in parallel with a
  * `nexo.backchannel.timeout` (2 s) budget, so the person who signed out waits
  * ~2 s at worst however many tools there are. Whatever fails transiently (no
- * connection, timeout, 5xx, 429) goes to the queue with backoff for up to 24 h.
- * A definitive refusal (another 4xx: the tool rejected the token or has its
+ * connection, timeout, 5xx, 408, 429 — and a redirect, which is never
+ * followed) goes to the queue with backoff for up to 24 h. A definitive refusal (another 4xx: the tool rejected the token or has its
  * endpoint switched off) is logged and dropped — retrying cannot fix it, and
  * the tool's 15-minute re-validation still closes that session.
  *
@@ -57,6 +59,9 @@ class BackchannelLogoutDispatcher
             $results = Http::pool(fn (Pool $pool) => $deliveries->map(
                 fn (BackchannelDelivery $d, int $i) => $pool->as((string) $i)
                     ->asForm()
+                    // A redirect is not a delivery: following it would turn the
+                    // POST into a GET of some other page and count its 200.
+                    ->withoutRedirecting()
                     ->connectTimeout($timeout)
                     ->timeout($timeout)
                     ->post($d->uri, ['logout_token' => $this->tokens->issue($d, $issuer)])
@@ -98,9 +103,34 @@ class BackchannelLogoutDispatcher
         return $status >= 400 && $status < 500 && ! in_array($status, [408, 429], true);
     }
 
+    /**
+     * Hand a delivery to the queue for its retries. Never lets a sign-out fail:
+     *
+     * - On the `sync` driver a "queued" job runs right here, inside the
+     *   person's request, and its failure is thrown back at it — a tool that
+     *   is down would turn every logout into a 500 after another 15 s. There is
+     *   no later to retry in, so the delivery is logged and dropped (the
+     *   tool's re-validation still closes that session).
+     * - Any other failure to enqueue (the jobs table unreachable) is logged too.
+     */
     private function queue(BackchannelDelivery $delivery, string $issuer, int $delaySeconds): void
     {
-        DeliverBackchannelLogout::dispatch($delivery, $issuer, now()->addDay()->getTimestamp())
-            ->delay($delaySeconds > 0 ? now()->addSeconds($delaySeconds) : null);
+        if (Queue::connection() instanceof SyncQueue) {
+            Log::warning('Back-channel logout not delivered and not retried: the queue runs synchronously.', [
+                'client_id' => $delivery->clientId,
+            ]);
+
+            return;
+        }
+
+        try {
+            DeliverBackchannelLogout::dispatch($delivery, $issuer, now()->addDay()->getTimestamp())
+                ->delay($delaySeconds > 0 ? now()->addSeconds($delaySeconds) : null);
+        } catch (Throwable $e) {
+            Log::warning('Back-channel logout could not be queued for retry.', [
+                'client_id' => $delivery->clientId,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }

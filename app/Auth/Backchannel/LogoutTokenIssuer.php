@@ -65,10 +65,18 @@ class LogoutTokenIssuer
      * The issuer exactly as the id_token states it. Inside a request that is
      * the bridge's own getter (scheme + host of the request); a queued retry
      * has no request, so the dispatcher resolves it at dispatch time and the
-     * job carries it. Outside any request (a console command), the app URL.
+     * job carries it. Outside any request (a console command), the app URL —
+     * unless `openid.issuedBy` fixes the issuer, which then wins everywhere.
      */
     public static function currentIssuer(): string
     {
+        $configured = (string) config('openid.issuedBy', 'laravel');
+
+        // A fixed issuer is what the id_token states, request or not.
+        if (! in_array($configured, ['laravel', 'server'], true)) {
+            return $configured;
+        }
+
         if (app()->runningInConsole() && ! app()->runningUnitTests()) {
             $url = parse_url((string) config('app.url'));
             $port = isset($url['port']) ? ':'.$url['port'] : '';
@@ -76,7 +84,7 @@ class LogoutTokenIssuer
             return ($url['scheme'] ?? 'https').'://'.($url['host'] ?? 'localhost').$port;
         }
 
-        return IssuedByGetter::get(app(LaravelCurrentRequestService::class), (string) config('openid.issuedBy', 'laravel'));
+        return IssuedByGetter::get(app(LaravelCurrentRequestService::class), $configured);
     }
 
     private function signingKey(): InMemory

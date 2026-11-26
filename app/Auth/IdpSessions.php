@@ -122,18 +122,23 @@ class IdpSessions
             return;
         }
 
-        $open = IdpSession::query()->whereKey($sids)->whereNull('ended_at')->get(['sid', 'user_id']);
+        $now = now();
 
-        if ($open->isEmpty()) {
+        // Claimed one by one, each with its own "still open" guard: when two
+        // requests end the same sid at once (a logout racing an end_session),
+        // only the one whose UPDATE flips it notifies the tools.
+        $ended = IdpSession::query()->whereKey($sids)->whereNull('ended_at')->get(['sid', 'user_id'])
+            ->filter(fn (IdpSession $session): bool => IdpSession::query()
+                ->whereKey($session->sid)
+                ->whereNull('ended_at')
+                ->update(['ended_at' => $now, 'ended_reason' => $reason]) === 1)
+            ->values();
+
+        if ($ended->isEmpty()) {
             return;
         }
 
-        IdpSession::query()
-            ->whereKey($open->pluck('sid')->all())
-            ->whereNull('ended_at')
-            ->update(['ended_at' => now(), 'ended_reason' => $reason]);
-
-        $this->dispatcher->dispatch($this->deliveriesFor($open));
+        $this->dispatcher->dispatch($this->deliveriesFor($ended));
     }
 
     /**

@@ -20,6 +20,7 @@ use Illuminate\Http\Client\Factory;
 use Illuminate\Http\Client\Request as HttpRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use Laravel\Passport\ClientRepository;
@@ -253,6 +254,44 @@ it('AC-SID-5: a browser whose sid was ended elsewhere is signed out on its next 
     app(IdpSessions::class)->end([$sid], 'session_revoked');
 
     $this->get('/profile')->assertRedirect(route('login'));
+    $this->assertGuest('web');
+});
+
+it('AC-SID-5: a JSON request with an ended sid gets a 401, not a redirect to the login page', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+    $sid = app(IdpSessions::class)->ensure(app('session.store'), $user);
+    app(IdpSessions::class)->end([$sid], 'session_revoked');
+
+    $this->getJson('/profile')->assertStatus(401)->assertHeaderMissing('Location');
+    $this->assertGuest('web');
+});
+
+it('AC-SID-5: an ended sid at authorize with prompt=none answers login_required to the tool, never a login page', function () {
+    // The tool's 15-minute re-validation is exactly this request. With a
+    // session driver other than database (a self-host), nothing deleted the
+    // browser's session row, so this middleware is what notices the end.
+    $client = scClient('tool-a.test');
+    $user = User::factory()->create();
+    $this->actingAs($user);
+    $sid = app(IdpSessions::class)->ensure(app('session.store'), $user);
+    app(IdpSessions::class)->end([$sid], 'session_revoked');
+
+    $challenge = rtrim(strtr(base64_encode(hash('sha256', scVerifier(), true)), '+/', '-_'), '=');
+    $location = (string) $this->get('/oauth/authorize?'.http_build_query([
+        'client_id' => $client->getKey(),
+        'redirect_uri' => $client->redirect_uris[0],
+        'response_type' => 'code',
+        'scope' => 'openid',
+        'state' => 'st',
+        'code_challenge' => $challenge,
+        'code_challenge_method' => 'S256',
+        'prompt' => 'none',
+    ]))->assertRedirect()->headers->get('Location');
+
+    expect($location)->toStartWith('https://tool-a.test/callback?')
+        ->toContain('error=login_required')
+        ->not->toContain('code=');
     $this->assertGuest('web');
 });
 
@@ -498,6 +537,43 @@ it('AC-BCL-P3: ending a sid twice notifies once', function () {
     expect(scSentLogoutTokens())->toHaveCount(1);
 });
 
+it('AC-BCL-P3: two requests ending the same sid at once notify once', function () {
+    $client = scClient('tool-a.test');
+    $user = User::factory()->create();
+    $this->actingAs($user);
+    $sid = scVerify(scIdToken($client))['sid'];
+
+    // Another request ends the sid right after this one read it as open.
+    $raced = false;
+    DB::listen(function ($query) use (&$raced, $sid): void {
+        if (! $raced && str_starts_with(strtolower($query->sql), 'select') && str_contains($query->sql, 'idp_sessions')) {
+            $raced = true;
+            DB::table('idp_sessions')->where('sid', $sid)->update(['ended_at' => now(), 'ended_reason' => 'logout']);
+        }
+    });
+
+    app(IdpSessions::class)->end([$sid], 'end_session');
+
+    expect($raced)->toBeTrue();
+    expect(scSentLogoutTokens())->toBe([]);
+    expect(IdpSession::query()->find($sid)->ended_reason)->toBe('logout');
+});
+
+it('AC-BCL-P2: a fixed openid.issuedBy is the logout_token iss too, also when minted outside a request', function () {
+    config()->set('openid.issuedBy', 'https://id.example.test');
+    $client = scClient('tool-a.test');
+    $user = User::factory()->create();
+    $this->actingAs($user);
+    $idClaims = scVerify(scIdToken($client));
+
+    expect(LogoutTokenIssuer::currentIssuer())->toBe('https://id.example.test');
+
+    $this->post('/logout');
+
+    expect($idClaims['iss'])->toBe('https://id.example.test');
+    expect(scSentLogoutTokens()[0]['claims']['iss'])->toBe('https://id.example.test');
+});
+
 // ── a tool that is down (§2.3) ───────────────────────────────────────────────
 
 it('AC-BCL-P4: a client that is down does not block the logout and is queued with backoff for 24 h', function () {
@@ -594,6 +670,44 @@ it('AC-BCL-P4: the queued retry mints a fresh valid token, and throws to retry w
     expect(fn () => $job->handle(app(LogoutTokenIssuer::class)))->toThrow(RuntimeException::class);
 });
 
+it('AC-BCL-P4: a redirect from the tool is not a delivery: never followed, queued for retry', function () {
+    scToolResponses(['https://tool-a.test/backchannel' => Http::response('', 302, ['Location' => 'https://tool-a.test/login'])]);
+    Queue::fake();
+
+    $user = User::factory()->create();
+    $this->actingAs($user);
+    scIdToken(scClient('tool-a.test'));
+
+    $this->post('/logout')->assertRedirect(route('home'));
+
+    // Only the POST went out: the redirect's target was never fetched.
+    expect(Http::recorded()->map(fn (array $pair): string => $pair[0]->method().' '.$pair[0]->url())->all())
+        ->toBe(['POST https://tool-a.test/backchannel']);
+    Queue::assertPushed(DeliverBackchannelLogout::class, 1);
+
+    $job = new DeliverBackchannelLogout(new BackchannelDelivery('c', 'https://tool-a.test/backchannel', $user->getKey(), 'sid'), 'https://issuer.test', now()->addDay()->getTimestamp());
+    expect(fn () => $job->handle(app(LogoutTokenIssuer::class)))->toThrow(RuntimeException::class);
+});
+
+it('AC-BCL-P4: on a synchronous queue a tool that is down never fails the sign-out', function () {
+    // QUEUE_CONNECTION=sync (a self-host without a worker): a "queued" retry
+    // would run inside this request and throw its failure at the person.
+    config()->set('queue.default', 'sync');
+    Log::spy();
+    scToolResponses(['https://tool-down.test/*' => Http::failedConnection()]);
+
+    $user = User::factory()->create();
+    $this->actingAs($user);
+    $sid = scVerify(scIdToken(scClient('tool-down.test')))['sid'];
+
+    $this->post('/logout')->assertRedirect(route('home'));
+
+    $this->assertGuest('web');
+    expect(IdpSession::query()->find($sid)->ended_reason)->toBe('logout');
+    // No synchronous "retry" behind the inline attempt: logged, not run.
+    Log::shouldHaveReceived('warning')->withArgs(fn (string $message): bool => str_contains($message, 'synchronously'))->once();
+});
+
 it('AC-BCL-P5: NEXO_OIDC_BACKCHANNEL=false sends and queues nothing, but sids still end', function () {
     Queue::fake();
     config()->set('nexo.backchannel.enabled', false);
@@ -658,6 +772,46 @@ it('AC-BCL-P6: a forged hint, or a genuine hint of another account, also asks fi
 
     $this->assertAuthenticatedAs($victim, 'web');
     expect(IdpSession::query()->find($attackerSid)->ended_at)->toBeNull();
+    expect(scSentLogoutTokens())->toBe([]);
+});
+
+it('AC-BCL-P6: an expired hint is still valid — the tools keep the id_token for hours', function () {
+    $client = scClient('tool-a.test', extraRedirects: ['https://tool-a.test/auth/nexo/signed-out']);
+    $user = User::factory()->create();
+    $this->actingAs($user);
+    $idToken = scIdToken($client);
+    $sid = scVerify($idToken)['sid'];
+
+    $this->travel(5)->hours(); // the id_token lives 1 h
+
+    $this->get(route('openid.end_session_endpoint', [
+        'id_token_hint' => $idToken,
+        'post_logout_redirect_uri' => 'https://tool-a.test/auth/nexo/signed-out',
+    ]))->assertRedirect('https://tool-a.test/auth/nexo/signed-out');
+
+    expect(IdpSession::query()->find($sid)->ended_reason)->toBe('end_session');
+});
+
+it('AC-BCL-P6: an alg=none hint, or one HMAC-signed with the public key, asks first', function () {
+    $client = scClient('tool-a.test', extraRedirects: ['https://tool-a.test/auth/nexo/signed-out']);
+    $user = User::factory()->create();
+    $this->actingAs($user);
+    $sid = scVerify(scIdToken($client))['sid'];
+    $claims = ['iss' => 'http://localhost', 'aud' => $client->getKey(), 'sub' => $user->getKey(), 'sid' => $sid, 'iat' => time(), 'exp' => time() + 3600];
+    $b64 = fn (string $raw): string => rtrim(strtr(base64_encode($raw), '+/', '-_'), '=');
+
+    $none = $b64('{"alg":"none","typ":"JWT"}').'.'.$b64((string) json_encode($claims)).'.';
+    $hmac = JWT::encode($claims, (string) file_get_contents(storage_path('oauth-public.key')), 'HS256');
+
+    foreach ([$none, $hmac] as $hint) {
+        $this->get(route('openid.end_session_endpoint', [
+            'id_token_hint' => $hint,
+            'post_logout_redirect_uri' => 'https://tool-a.test/auth/nexo/signed-out',
+        ]))->assertOk()->assertViewIs('auth.logout-confirm');
+    }
+
+    $this->assertAuthenticatedAs($user, 'web');
+    expect(IdpSession::query()->find($sid)->ended_at)->toBeNull();
     expect(scSentLogoutTokens())->toBe([]);
 });
 

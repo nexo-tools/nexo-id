@@ -84,7 +84,7 @@ it('AC-LOGOUT-2: the OIDC end_session_endpoint ends the central session', functi
     $idToken = mintLogoutIdToken($client, 'https://client.test/callback', $challenge, $verifier, $user);
 
     // RP-initiated logout with the id_token_hint the tool kept (ADR-010: a
-    // valid hint acts at once; without one it asks first — AC-BCL-P7).
+    // valid hint acts at once; without one it asks first — AC-BCL-P6).
     $this->get(route('openid.end_session_endpoint', ['id_token_hint' => $idToken]))
         ->assertOk()->assertViewIs('auth.logged-out');
 
@@ -147,7 +147,7 @@ it('AC-LOGOUT-5: without an id_token_hint, no post_logout_redirect_uri is honour
         'post_logout_redirect_uri' => 'https://client.test/callback',
     ]));
 
-    // With a session and no hint it asks first (AC-BCL-P7) — still no redirect.
+    // With a session and no hint it asks first (AC-BCL-P6) — still no redirect.
     $response->assertOk()->assertViewIs('auth.logout-confirm');
     expect($response->headers->get('Location'))->toBeNull();
 

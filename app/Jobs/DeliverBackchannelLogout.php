@@ -54,6 +54,7 @@ class DeliverBackchannelLogout implements ShouldQueue
 
         try {
             $response = Http::asForm()
+                ->withoutRedirecting() // a redirect is not a delivery (see the dispatcher)
                 ->connectTimeout(5)
                 ->timeout(10)
                 ->post($this->delivery->uri, ['logout_token' => $tokens->issue($this->delivery, $this->issuer)]);
