@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\Support\NexoChrome;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
@@ -104,4 +105,19 @@ it('AC-REG-5: rate limits registration attempts per IP', function () {
     }
 
     $this->post('/register', [])->assertStatus(429);
+});
+
+it('AC-REG-1: every «Crear cuenta» of the shared chrome leads to this sign-up', function () {
+    // Nexo ID is the identity provider, not an SSO client: NexoChrome::signUpUrl()
+    // (nexo-ui v2.2) answers its own /register, never a Nexo ID round trip
+    // through /auth/nexo/enter. The login card and the guest phone sheet are the
+    // two places that offer it.
+    expect(NexoChrome::signUpUrl())->toBe(route('register'));
+
+    $login = $this->get('/login')->assertOk()->getContent();
+    expect(str_contains($login, 'href="'.route('register').'" data-nexo-sign-up'))
+        ->toBeTrue('The login card\'s «Crear cuenta» does not go to /register.');
+    expect(str_contains($login, 'href="'.route('register').'" class="nexo-sheet__item" data-nexo-sheet-sign-up'))
+        ->toBeTrue('The guest sheet\'s «Crear cuenta» does not go to /register.');
+    expect(str_contains($login, '/auth/nexo/'))->toBeFalse('Nexo ID links a client route it does not have.');
 });

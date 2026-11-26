@@ -33,6 +33,11 @@ use Illuminate\Mail\Mailable;
  * label => closure building the mail. Factories are fine: each test runs in a
  * transaction.
  *
+ * DECLARE EVERY MAIL, including the operator alert: the one class left out of
+ * this list on 2026-08-02 was the one that shipped broken (a public $message
+ * property silently overwritten by Laravel's own $message), because nothing
+ * ever rendered it.
+ *
  *   'ticket' => fn () => new TicketIssued(Ticket::factory()->create(), 'raw-token'),
  *   'verify' => fn () => [new VerifyEmailQueued, User::factory()->create()],
  *

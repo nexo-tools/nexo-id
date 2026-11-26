@@ -4,7 +4,7 @@
 
 ## Stack
 
-Laravel 13 + MySQL, local dev via Sail (mysql + mailpit). Blade + Tailwind v4 (Vite), no Alpine. Pest 4 / Pint / Larastan level 6. CI: GitHub Actions (composer audit, Pint, Larastan, translations `--check`, npm build, Pest). See [ADR-002](adr/ADR-002-stack-and-hosting.md).
+Laravel 13 + MySQL, local dev via Sail (mysql + mailpit). Blade + Tailwind v4 (Vite); Alpine only for the shared chrome (`templates/nexo-ui`: menus, phone sheet, theme). Pest 4 / Pint / Larastan level 6. CI: GitHub Actions (composer audit, Pint, Larastan, translations `--check`, npm build, Pest). See [ADR-002](adr/ADR-002-stack-and-hosting.md).
 
 ## Request pipeline
 

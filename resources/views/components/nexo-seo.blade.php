@@ -67,13 +67,15 @@
 @endif
 
 @if ($jsonld && ! $noindex)
-        @php
+    @php
         // JSON-LD keys carry an `@` sigil, and Blade compiles `@context` as a
-        // directive (Laravel 11 added one), which turned this block into raw PHP
-        // in the rendered page. Keeping the sigil out of the template text is
-        // what stops Blade from seeing a directive at all.
+        // directive (Laravel 11 added one), which ships compiled PHP inside the
+        // script tag instead of JSON. Keeping the sigil out of the template text
+        // is what stops Blade from seeing a directive at all — and it holds if
+        // Blade later claims `@type`, `@id` or `@graph` too.
         $at = '@';
-        $schema = [
+    @endphp
+    <script type="application/ld+json">{!! json_encode([
         $at.'context' => 'https://schema.org',
         $at.'type' => 'WebSite',
         'name' => $siteName,
@@ -85,7 +87,5 @@
             'name' => 'Nexo',
             'url' => config('nexo-ecosystem.hub_url', 'https://nexotools.alvarocdev.com'),
         ],
-    ];
-    @endphp
-    <script type="application/ld+json">{!! json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
 @endif

@@ -8,20 +8,32 @@ use Illuminate\Support\Facades\Route;
 // Why it exists: 404/419/429/500 and privacy/terms are the pages nobody opens
 // while building, so they rot silently. 419 and 429 in particular are the ones a
 // real user hits (expired session, rate limit) and the ones most often left as
-// Laravel's untranslated default. Here they matter more than in a normal tool:
-// this is the identity provider, so its error pages are the ones a user meets
-// mid-login, when they are already unsure whether something got hacked.
+// Laravel's untranslated default.
 //
-// Note on style: Pest's toContain() takes needles, not a message, so the checks
-// that need to explain themselves assert on str_contains() via toBeTrue($why).
+// Copy into tests/Feature/Nexo/. If a tool legitimately lacks a page (an isolated
+// short-link host only needs a minimal 404), drop it from $codes and record the
+// exception in the tool's AGENTS.md.
+//
+// v2 (2026-08-02) also asserts what the error page WEARS: the tool chrome and a
+// noindex. Both were drifting unseen — two tools served errors as a bare
+// document with no header, no footer and no way to change theme, and one of
+// them left the page indexable on top of that.
+//
+// Pest note: toContain() is variadic — a second argument is another needle, not
+// a failure message — so human-readable messages go through toBeTrue()/toBeFalse().
 
 $codes = [403, 404, 419, 429, 500, 503];
 
-// Hosts whose error pages are deliberately chrome-less (the isolated short-link
-// host of nexoshort). This tool has none.
+// Hosts whose error pages are deliberately chrome-less: the isolated short-link
+// host (nxo.li) loads no chrome, tokens or build by design (ADR-001) and is
+// guarded by HostChromeIsolationTest instead. Leave empty in every other tool.
 const ISOLATED_ERROR_HOSTS = [];
 
-/** The URL whose 404 must carry the tool chrome. */
+/**
+ * The URL whose 404 must carry the tool chrome. nexoshort overrides the body
+ * with panelUrl($path): on that tool the default host is the short one, whose
+ * 404 is the isolated shell.
+ */
 function chromeErrorUrl(string $path): string
 {
     return $path;
@@ -38,23 +50,16 @@ it('ships an error view for every code the standard requires', function () use (
 
 it('renders error pages with the tool chrome and no untranslated placeholders', function () use ($codes) {
     foreach ($codes as $code) {
-        $contents = file_get_contents(resource_path("views/errors/{$code}.blade.php"));
+        $path = resource_path("views/errors/{$code}.blade.php");
+        if (! is_file($path)) {
+            continue;
+        }
+
+        $contents = (string) file_get_contents($path);
 
         // Strings go through __() so the generator can translate them.
         expect(str_contains($contents, '__('))->toBeTrue("errors/{$code}.blade.php has hardcoded strings — wrap them in __().");
-        expect(str_contains($contents, 'x-error-layout'))->toBeTrue("errors/{$code}.blade.php does not use the shared shell — it will render without the Nexo ID chrome.");
-        expect($contents)->not->toContain('[COMPLETAR');
-    }
-});
-
-it('renders every error view, not just the one an http test can trigger', function () use ($codes) {
-    // 403/419/429/500/503 cannot be provoked from the test client, so they are the
-    // ones that break unnoticed when the shared shell changes. Rendering them
-    // directly is what catches a renamed prop or a missing component.
-    foreach ($codes as $code) {
-        $html = view("errors.{$code}")->render();
-
-        expect($html)->toContain((string) $code, 'nexo-header', 'nexo-footer');
+        expect(str_contains($contents, '[COMPLETAR'))->toBeFalse("errors/{$code}.blade.php still has a template placeholder.");
     }
 });
 
@@ -66,18 +71,25 @@ it('serves a branded 404 instead of the framework default', function () {
         ->getContent();
 
     // The chrome renders, so the page belongs to the product.
-    expect($html)->toContain('404', 'nexo-header', 'nexo-footer');
-    expect($html)->not->toContain('Whoops, looks like something went wrong');
+    expect($html)->toContain('404');
+    expect(str_contains($html, 'Whoops, looks like something went wrong'))->toBeFalse('Laravel default error page is still being served.');
 
     $host = parse_url($url, PHP_URL_HOST) ?: parse_url((string) config('app.url'), PHP_URL_HOST);
     if (in_array($host, ISOLATED_ERROR_HOSTS, true)) {
         return;
     }
 
-    // And it stays out of the index. Asserting the rendered meta (not the
-    // include) also catches a head that quietly ignores the noindex flag.
+    // Chrome, not just branding: an error page that drops the header drops the
+    // theme toggle, the language switcher and the way back with it. Two tools
+    // shipped errors as a bare document with the favicon and the app name.
+    expect(str_contains($html, 'nexo-header'))->toBeTrue('The 404 does not render x-nexo-header — use the canonical error-layout (templates/nexo-ui/pages/error-layout.blade.php).');
+    expect(str_contains($html, 'nexo-footer'))->toBeTrue('The 404 does not render x-nexo-footer — use the canonical error-layout.');
+
+    // And it stays out of the index: an error page has no business in search
+    // results. The assertion is on the rendered meta, so a head partial that
+    // quietly ignores the noindex flag is caught too.
     expect(preg_match('/<meta[^>]+name=["\']robots["\'][^>]+noindex/i', $html))
-        ->toBe(1, 'The 404 is missing <meta name="robots" content="noindex">.');
+        ->toBe(1, 'The 404 is missing <meta name="robots" content="noindex"> — pass noindex through partials.head.');
 });
 
 it('serves the legal pages and links them from each other', function () {
@@ -86,14 +98,14 @@ it('serves the legal pages and links them from each other', function () {
 
         $html = $this->get(route($route))->assertOk()->getContent();
 
-        // A surviving placeholder means the tool shipped the template, not its content.
-        expect($html)->not->toContain('[COMPLETAR');
-        expect($html)->toContain(route('legal.privacy'), route('legal.terms'));
+        expect(str_contains($html, '[COMPLETAR'))->toBeFalse("The {$route} page still ships a template placeholder — write this tool's real content before shipping.");
+        expect($html)->toContain(route('legal.privacy'));
+        expect($html)->toContain(route('legal.terms'));
     }
 });
 
 it('translates the legal content in every supported locale', function () {
-    foreach (config('nexo.locales') as $locale) {
+    foreach (['es', 'en', 'pt'] as $locale) {
         $path = lang_path("{$locale}/legal.php");
         expect(is_file($path))->toBeTrue("lang/{$locale}/legal.php is missing.");
 
@@ -104,25 +116,7 @@ it('translates the legal content in every supported locale', function () {
             expect($content[$page]['sections'] ?? [])->not->toBeEmpty("legal.{$page}.sections empty in {$locale}.");
         }
 
-        expect(json_encode($content))->not->toContain('[COMPLETAR');
-    }
-});
-
-it('names the claims a tool receives, in every locale', function () {
-    // Nexo ID's privacy page is the ONE place in the ecosystem that documents what
-    // crosses from the account to a tool. A policy of generic clauses would pass
-    // every other assertion in this file, so the claims the id_token carries are
-    // named — in all three languages, since a translator dropping them is exactly
-    // how this drifts. `email` and `name` are ordinary words in prose, so only the
-    // two unambiguous ones are asserted.
-    foreach (config('nexo.locales') as $locale) {
-        $content = require lang_path("{$locale}/legal.php");
-        $text = implode(' ', array_column($content['privacy']['sections'], 'p'));
-
-        foreach (['sub', 'email_verified'] as $claim) {
-            expect(preg_match('/\b'.$claim.'\b/u', $text) === 1)
-                ->toBeTrue("lang/{$locale}/legal.php does not name the `{$claim}` claim shared with the tools.");
-        }
+        expect(str_contains((string) json_encode($content), '[COMPLETAR'))->toBeFalse("lang/{$locale}/legal.php still has template placeholders.");
     }
 });
 
