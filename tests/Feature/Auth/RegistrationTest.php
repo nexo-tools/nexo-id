@@ -121,3 +121,24 @@ it('AC-REG-1: every «Crear cuenta» of the shared chrome leads to this sign-up'
         ->toBeTrue('The guest sheet\'s «Crear cuenta» does not go to /register.');
     expect(str_contains($login, '/auth/nexo/'))->toBeFalse('Nexo ID links a client route it does not have.');
 });
+
+it('AC-REG-4: sign-ups have a per-IP ceiling of their own', function () {
+    config(['nexo.register_rate.per_ip' => 2]);
+    $invalid = ['display_name' => '', 'email' => 'not-an-email', 'password' => 'x', 'password_confirmation' => 'y'];
+
+    $this->post('/register', $invalid)->assertStatus(302);
+    $this->post('/register', $invalid)->assertStatus(302);
+    $this->post('/register', $invalid)->assertStatus(429);
+});
+
+it('AC-REG-4: the token endpoint does not spend the sign-up budget', function () {
+    // Passport's POST /oauth/token carries the plain `throttle` (keyed by IP
+    // alone). The tools exchange their codes from one server address: with the
+    // sign-up on that same counter, the third sign-up got a 429 (e2e, 2026-11-26).
+    for ($i = 0; $i < 12; $i++) {
+        $this->post('/oauth/token', ['grant_type' => 'nope']);
+    }
+
+    $this->post('/register', ['display_name' => '', 'email' => 'not-an-email', 'password' => 'x', 'password_confirmation' => 'y'])
+        ->assertStatus(302);
+});

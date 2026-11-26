@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 
 /** Named limiters this tool declares, e.g. ['login-ip', 'report']. */
-const NAMED_LIMITERS = ['login-ip', 'oidc-ip'];
+const NAMED_LIMITERS = ['login-ip', 'oidc-ip', 'register-ip'];
 
 /**
  * URI of the credential sign-in POST, or null if the tool has none. Matched by

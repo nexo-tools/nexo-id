@@ -81,6 +81,12 @@ return [
         'per_ip' => env('NEXO_OIDC_RATE_PER_IP', 60),
     ],
 
+    // Altas por IP (POST /register), con un contador propio: un throttle:10,1
+    // en la ruta comparte el contador por IP con el canje de tokens de Passport.
+    'register_rate' => [
+        'per_ip' => env('NEXO_REGISTER_RATE_PER_IP', 10),
+    ],
+
     // Techo por IP de /oauth/authorize (ThrottleAuthorizeByIp). Con la
     // re-validación de las herramientas (prompt=none cada 15 min) un wifi
     // compartido con varias personas suma authorize de a muchos: el techo se

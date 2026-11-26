@@ -46,5 +46,12 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('oidc-ip', fn (Request $request) => Limit::perMinute(
             (int) config('nexo.oidc_rate.per_ip')
         )->by((string) $request->ip()));
+        // Sign-ups by IP, on a counter of their own. An inline throttle:10,1
+        // keys by IP alone, the same counter as Passport's token endpoint
+        // (plain `throttle`): the tools' token exchanges from one address spent
+        // the sign-up budget and the third sign-up got a 429 (e2e, 2026-11-26).
+        RateLimiter::for('register-ip', fn (Request $request) => Limit::perMinute(
+            (int) config('nexo.register_rate.per_ip')
+        )->by('register|'.$request->ip()));
     }
 }
