@@ -24,6 +24,7 @@
     "Change password": "Cambiar contraseña",
     "Choose a new password": "Elige una contraseña nueva",
     "Confirm password": "Confirmar contraseña",
+    "Confirm that it is you": "Confirmar que eres tú",
     "Confirm your address to finish setting up your account.": "Confirma tu dirección para terminar de configurar tu cuenta.",
     "Confirm your address to finish setting up your account. It is also how you get back in if you forget your password.": "Confirma tu dirección para terminar de configurar tu cuenta. Es también la forma de volver a entrar si olvidas tu contraseña.",
     "Connected tools": "Herramientas conectadas",
@@ -36,7 +37,6 @@
     "Display name": "Nombre visible",
     "Email": "Correo electrónico",
     "Email verification link": "Enlace de verificación",
-    "Enable OpenID Connect": "Habilitar OpenID Connect",
     "Enter your email and we will send you a link to reset your password.": "Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.",
     "es · en · pt — light and dark": "es · en · pt — claro y oscuro",
     "Expires after :minutes minutes": "Expira a los :minutes minutos",
@@ -94,6 +94,7 @@
     "The Nexo tools where you used this account.": "Las herramientas Nexo donde usaste esta cuenta.",
     "The numbers": "Los datos",
     "The page expired": "La página expiró",
+    "The page expired. Try again.": "La página había vencido. Vuelve a intentarlo.",
     "The password for your account was just changed.": "La contraseña de tu cuenta acaba de cambiar.",
     "This deletes your Nexo ID account: your name, your email, your password and your sessions. Every Nexo tool where you are signed in signs you out.": "Esto borra tu cuenta de Nexo ID: tu nombre, tu correo, tu contraseña y tus sesiones. Se cierra tu sesión en todas las herramientas Nexo donde la tengas abierta.",
     "This device": "Este dispositivo",
@@ -129,6 +130,5 @@
     "Your password was changed.": "Se cambió tu contraseña.",
     "Your password, to confirm": "Tu contraseña, para confirmar",
     "Your profile was updated.": "Se actualizó tu perfil.",
-    "{1} Show 1 more session|[2,*] Show :count more sessions": "{1} Ver 1 sesión más|[2,*] Ver :count sesiones más",
-    "The page expired. Try again.": "La página había vencido. Vuelve a intentarlo."
+    "{1} Show 1 more session|[2,*] Show :count more sessions": "{1} Ver 1 sesión más|[2,*] Ver :count sesiones más"
 }

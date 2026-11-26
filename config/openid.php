@@ -11,7 +11,7 @@ return [
          * To receive an `id_token, you should at least provide the openid scope.
          */
         'tokens_can' => [
-            'openid' => 'Enable OpenID Connect',
+            'openid' => 'Confirm that it is you',
             'profile' => 'Information about your profile',
             'email' => 'Information about your email address',
             // phone/address are omitted: IdentityEntity backs no such claims, so
