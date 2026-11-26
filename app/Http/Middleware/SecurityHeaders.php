@@ -71,7 +71,7 @@ class SecurityHeaders
         return implode('; ', [
             "default-src 'self'",
             "base-uri 'self'",
-            "form-action 'self'",
+            'form-action '.$this->formAction(),
             "frame-ancestors 'none'",
             "object-src 'none'",
             "img-src 'self' data:",
@@ -80,6 +80,40 @@ class SecurityHeaders
             "style-src {$style}",
             "connect-src {$connect}",
         ]);
+    }
+
+    /**
+     * `form-action` also governs where a form submission may be REDIRECTED,
+     * and this is the identity provider: the sign-in POST redirects to
+     * /oauth/authorize, which redirects to the tool's callback. With only
+     * 'self' the browser blocked that last hop (Chrome and Safari) and the
+     * person stayed on the login form (ADR-010, contract §3). So the policy
+     * names the origin of every other tool in the ecosystem registry — the
+     * clients whose redirect_uris live there.
+     *
+     * Mirror any change in public/.htaccess, which LiteSpeed serves instead of
+     * this header in production (the origins are written there literally).
+     */
+    private function formAction(): string
+    {
+        $current = config('nexo-ecosystem.current');
+        $origins = [];
+
+        foreach ((array) config('nexo-ecosystem.tools', []) as $key => $tool) {
+            if ($key === $current || ! is_array($tool)) {
+                continue;
+            }
+
+            $parts = parse_url((string) ($tool['url'] ?? ''));
+
+            if (! is_array($parts) || ! isset($parts['scheme'], $parts['host'])) {
+                continue;
+            }
+
+            $origins[] = $parts['scheme'].'://'.$parts['host'].(isset($parts['port']) ? ':'.$parts['port'] : '');
+        }
+
+        return implode(' ', ["'self'", ...array_values(array_unique($origins))]);
     }
 
     private function viteDevServer(): ?string

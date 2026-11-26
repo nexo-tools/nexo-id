@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\EnsureIdpSessionActive;
+use App\Http\Middleware\NoStoreForSensitiveResponses;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
 use App\Mail\OperatorAlert;
@@ -24,6 +26,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             SetLocale::class,
             SecurityHeaders::class,
+            NoStoreForSensitiveResponses::class,
+            // Last, so a browser whose sid was ended elsewhere is signed out
+            // before the route runs — and still gets the headers above.
+            EnsureIdpSessionActive::class,
         ]);
 
         // Shared preference cookies (theme + language) are scoped to the parent

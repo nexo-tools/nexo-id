@@ -15,6 +15,12 @@ Schedule::call(fn () => Artisan::call('passport:purge'))
     ->name('passport-purge')
     ->daily();
 
+// Drop ended and long-idle IdP sessions (sid registry, ADR-010). Inline for
+// the same proc_open reason.
+Schedule::call(fn () => Artisan::call('nexo:prune-idp-sessions'))
+    ->name('idp-sessions-prune')
+    ->daily();
+
 /*
  * Shared hosting cannot run a long-lived queue worker (no daemons, ADR-002), so
  * the scheduler drains the database queue in short bursts instead. It rides the
@@ -23,7 +29,8 @@ Schedule::call(fn () => Artisan::call('passport:purge'))
  *     * * * * * cd /path/to/app && php artisan schedule:run >> /dev/null 2>&1
  *
  * Without it the queued PasswordChanged notice never leaves: the row sits in
- * the jobs table while the account page reports the password was changed.
+ * the jobs table while the account page reports the password was changed —
+ * and back-channel logouts that failed inline are never retried (ADR-010).
  *
  * The drain runs INLINE (Schedule::call + Artisan::call), never as a
  * Schedule::command subprocess: proc_open/exec are disabled on this hosting

@@ -71,4 +71,29 @@ return [
     'oidc_rate' => [
         'per_ip' => env('NEXO_OIDC_RATE_PER_IP', 60),
     ],
+
+    // Techo por IP de /oauth/authorize (ThrottleAuthorizeByIp). Con la
+    // re-validación de las herramientas (prompt=none cada 15 min) un wifi
+    // compartido con varias personas suma authorize de a muchos: el techo se
+    // sube por env, no tocando el middleware.
+    'authorize_rate' => [
+        'per_minute' => env('NEXO_OIDC_AUTHORIZE_PER_MINUTE', 60),
+    ],
+
+    // OIDC Back-Channel Logout 1.0 (ADR-010). Al terminar una sesión de Nexo ID
+    // (sid), se le avisa servidor a servidor a cada herramienta que obtuvo un
+    // code en esa sesión y registró su backchannel_logout_uri. Kill-switch:
+    // NEXO_OIDC_BACKCHANNEL=false deja de despachar y de anunciarlo en el
+    // discovery; los sids se siguen registrando y terminando igual.
+    'backchannel' => [
+        'enabled' => (bool) env('NEXO_OIDC_BACKCHANNEL', true),
+        // Segundos por intento síncrono (conexión y respuesta). Los envíos
+        // síncronos van en paralelo, así que la respuesta al usuario espera
+        // como mucho esto, no esto por cada herramienta.
+        'timeout' => 2,
+        // Con más envíos que esto en un solo evento (p. ej. «todos los
+        // dispositivos» de una cuenta con muchas sesiones) no se intenta nada
+        // en línea: todo va a la cola.
+        'sync_max' => 10,
+    ],
 ];

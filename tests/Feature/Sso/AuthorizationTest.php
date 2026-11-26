@@ -170,6 +170,20 @@ it('AC-RATE-1: throttles /oauth/authorize per IP with 429', function () {
     $this->get($url)->assertStatus(429);
 });
 
+it('AC-RATE-3: the authorize ceiling comes from NEXO_OIDC_AUTHORIZE_PER_MINUTE', function () {
+    config()->set('nexo.authorize_rate.per_minute', 3);
+    $client = ssoClient();
+    [, $challenge] = pkce();
+    $url = authorizeUrl($client->getKey(), 'https://client.test/callback', $challenge);
+
+    for ($i = 0; $i < 3; $i++) {
+        expect($this->get($url)->getStatusCode())->not->toBe(429);
+    }
+
+    $this->get($url)->assertStatus(429);
+    expect(config('nexo.authorize_rate.per_minute'))->toBe(3);
+});
+
 // Silent SSO (OIDC prompt=none): the authorize endpoint must answer without
 // rendering ANY UI — a code when a usable session exists, an OIDC error
 // redirect back to the client otherwise. Consumed by the nexo-sso-client

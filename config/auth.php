@@ -41,6 +41,12 @@ return [
         'web' => [
             'driver' => 'session',
             'provider' => 'users',
+            // «Recordarme» dura 30 días (minutos; el default del framework son
+            // 576 000 ≈ 400 días). Lo lee AuthManager::createSessionDriver y
+            // pasa a SessionGuard::setRememberDuration. Las cookies emitidas
+            // bajo la política vieja se cortaron con la migración
+            // 2026_11_26_000003 (ADR-010, D4).
+            'remember' => 60 * 24 * 30,
         ],
 
         // API guard backed by Passport access tokens (used by /oauth/userinfo

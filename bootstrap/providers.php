@@ -2,10 +2,12 @@
 
 use App\Providers\AppServiceProvider;
 use App\Providers\AuthServiceProvider;
-use OpenIDConnect\Laravel\PassportServiceProvider;
+use App\Providers\OidcServiceProvider;
 
 return [
     AppServiceProvider::class,
     AuthServiceProvider::class,
-    PassportServiceProvider::class,
+    // Extends the OIDC bridge's provider (which extends Passport's) with the
+    // IdP session sid — ADR-010. Neither package is auto-discovered.
+    OidcServiceProvider::class,
 ];

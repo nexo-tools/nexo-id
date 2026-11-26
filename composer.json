@@ -78,7 +78,8 @@
     "extra": {
         "laravel": {
             "dont-discover": [
-                "laravel/passport"
+                "laravel/passport",
+                "jeremy379/laravel-openid-connect"
             ]
         }
     },

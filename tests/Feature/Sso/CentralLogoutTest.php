@@ -76,15 +76,17 @@ it('AC-LOGOUT-1: after central logout a silent authorize requires re-login', fun
 
 it('AC-LOGOUT-2: the OIDC end_session_endpoint ends the central session', function () {
     $client = logoutTestClient();
+    $verifier = str_repeat('c', 64);
     $challenge = challengeFor();
     $user = User::factory()->create();
 
     // Signed in, a silent authorize issues a code.
-    $before = $this->actingAs($user)->get(authorizeRequest($client->getKey(), $challenge));
-    expect((string) $before->headers->get('Location'))->toContain('code=');
+    $idToken = mintLogoutIdToken($client, 'https://client.test/callback', $challenge, $verifier, $user);
 
-    // Front-channel logout via the end_session endpoint.
-    $this->get(route('openid.end_session_endpoint'));
+    // RP-initiated logout with the id_token_hint the tool kept (ADR-010: a
+    // valid hint acts at once; without one it asks first — AC-BCL-P7).
+    $this->get(route('openid.end_session_endpoint', ['id_token_hint' => $idToken]))
+        ->assertOk()->assertViewIs('auth.logged-out');
 
     // A fresh authorize now requires re-login: the central session is gone.
     $after = $this->get(authorizeRequest($client->getKey(), $challenge));
@@ -145,8 +147,14 @@ it('AC-LOGOUT-5: without an id_token_hint, no post_logout_redirect_uri is honour
         'post_logout_redirect_uri' => 'https://client.test/callback',
     ]));
 
-    $response->assertOk()->assertViewIs('auth.logged-out');
+    // With a session and no hint it asks first (AC-BCL-P7) — still no redirect.
+    $response->assertOk()->assertViewIs('auth.logout-confirm');
     expect($response->headers->get('Location'))->toBeNull();
+
+    // Confirming signs out and lands on our own page, never the caller's URL.
+    $confirmed = $this->post(route('openid.end_session.confirm'));
+    $confirmed->assertOk()->assertViewIs('auth.logged-out');
+    expect($confirmed->headers->get('Location'))->toBeNull();
 });
 
 it('AC-LOGOUT-6: discovery advertises the end_session_endpoint', function () {

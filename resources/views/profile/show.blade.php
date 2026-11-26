@@ -84,7 +84,7 @@
                             <form method="POST" action="{{ route('sessions.destroy', $session->id) }}">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="text-sm text-danger hover:underline">{{ __('Sign out') }}</button>
+                                <button type="submit" class="text-sm text-danger hover:underline">{{ __('Sign out this session') }}</button>
                             </form>
                         @endunless
                     </li>
@@ -92,6 +92,16 @@
                     <li class="text-sm text-muted">{{ __('No other active sessions.') }}</li>
                 @endforelse
             </ul>
+
+            {{-- D3 (ADR-010): this device's «Cerrar sesión» closes only this
+                 device; this closes every device, this one included, and every
+                 Nexo tool signed in through them. The final placement comes with
+                 the chrome v2 port. --}}
+            <form method="POST" action="{{ route('logout.everywhere') }}" class="mt-4"
+                  x-data @submit="if (! confirm(@js(__('Sign out on every device, this one included? Every device will have to sign in again.')))) $event.preventDefault()">
+                @csrf
+                <button type="submit" class="text-sm text-danger hover:underline">{{ __('Sign out of all devices') }}</button>
+            </form>
         </section>
     </div>
 @endsection

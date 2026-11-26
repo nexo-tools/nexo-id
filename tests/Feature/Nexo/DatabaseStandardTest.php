@@ -27,6 +27,8 @@ const EXPECTED_TABLES = [
     'cache',
     'cache_locks',
     'failed_jobs',
+    'idp_session_clients',
+    'idp_sessions',
     'job_batches',
     'jobs',
     'oauth_access_tokens',

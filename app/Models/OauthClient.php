@@ -8,6 +8,8 @@ use Laravel\Passport\Scope;
 
 /**
  * @property array<int, string> $redirect_uris
+ * @property string|null $backchannel_logout_uri where this client receives OIDC
+ *                                               back-channel logout tokens (ADR-010)
  */
 class OauthClient extends PassportClient
 {

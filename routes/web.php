@@ -32,12 +32,15 @@ Route::get('/help', HelpController::class)->name('help');
 Route::get('/privacidad', [LegalController::class, 'privacy'])->name('legal.privacy');
 Route::get('/terminos', [LegalController::class, 'terms'])->name('legal.terms');
 
-// OIDC RP-initiated (front-channel) logout. Lives in web.php (not oidc.php) so it
-// runs inside the session middleware and can end the browser session; the route
-// NAME is what the discovery controller advertises as end_session_endpoint. It
-// validates post_logout_redirect_uri against the id_token_hint client's URIs and
-// never open-redirects. (ADR-009 / M4b)
+// OIDC RP-initiated logout. Lives in web.php (not oidc.php) so it runs inside the
+// session middleware and can end the browser session; the route NAME is what the
+// discovery controller advertises as end_session_endpoint. It validates
+// post_logout_redirect_uri against the id_token_hint client's URIs and never
+// open-redirects (ADR-009). Since session control it signs the device out of
+// every tool, so without a valid hint it asks first and the POST below is the
+// confirmed answer (ADR-010, S9).
 Route::get('/oauth/logout', EndSessionController::class)->name('openid.end_session_endpoint');
+Route::post('/oauth/logout', [EndSessionController::class, 'confirm'])->name('openid.end_session.confirm');
 
 Route::get('/sitemap.xml', function () {
     // Every public, indexable page. The auth and OAuth surface is disallowed in
@@ -90,6 +93,9 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware('auth')->group(function () {
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+    // «Cerrar sesión en todos los dispositivos» (D3, ADR-010): every session of
+    // the account, this one included, and every tool signed in through them.
+    Route::post('logout/everywhere', [SessionController::class, 'destroyAll'])->name('logout.everywhere');
 
     Route::get('verify-email', EmailVerificationPromptController::class)
         ->name('verification.notice');

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Oidc\OpenIdConfigurationController;
+use App\Http\Middleware\NoStoreForSensitiveResponses;
 use Illuminate\Support\Facades\Route;
 use OpenIDConnect\Laravel\UserInfoController;
 
@@ -24,6 +25,7 @@ Route::get('/.well-known/openid-configuration', OpenIdConfigurationController::c
 // guard. Framework middleware priority runs Authenticate before ThrottleRequests,
 // so this caps authenticated traffic per IP (an abusive client token cannot
 // hammer userinfo); token-less requests are already rejected cheaply by auth:api.
+// Personal claims: never cached (no-store, ADR-010).
 Route::get('/oauth/userinfo', UserInfoController::class)
-    ->middleware(['auth:api', 'throttle:oidc-ip'])
+    ->middleware([NoStoreForSensitiveResponses::class, 'auth:api', 'throttle:oidc-ip'])
     ->name('openid.userinfo');

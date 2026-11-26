@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Oidc;
 
+use App\Auth\IdpSessions;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,33 +16,46 @@ use Lcobucci\JWT\Validation\Constraint\SignedWith;
 use Throwable;
 
 /**
- * OIDC RP-initiated (front-channel) logout — the end_session_endpoint. A tool
- * sends the browser here to end the central Nexo ID session (with the local one
- * it already ended). Advertised in discovery because the route is named
- * `openid.end_session_endpoint` (DiscoveryController checks Route::has).
+ * OIDC RP-initiated logout — the end_session_endpoint. A tool sends the browser
+ * here (GET, no CSRF possible) after ending its own session. Advertised in
+ * discovery because the route is named `openid.end_session_endpoint`.
  *
- * Anti open-redirect (ADR-009): a `post_logout_redirect_uri` is honoured ONLY
- * when it is a registered redirect URI of the client named in a signature-valid
- * `id_token_hint`. Anything else lands on our own "signed out" page — we never
- * bounce the browser to an arbitrary URL.
+ * Since session control (ADR-010) ending a Nexo ID session also signs the
+ * device out of every tool, so a bare GET can no longer be trusted to mean
+ * "the person asked for this" (S9: a link in a mail would sign them out of the
+ * whole ecosystem). The endpoint acts at once only with a valid
+ * `id_token_hint` — signature-valid, and for the account signed in here (if
+ * any); expiry is ignored, logout hints are routinely expired. Then it ends
+ * the hint's sid and this browser's sid, and honours `post_logout_redirect_uri`
+ * only when it is exactly a registered redirect URI of the hint's client.
+ *
+ * Without a valid hint and with a session, it asks first: «¿Cerrar sesión en
+ * todo Nexo?», a POST with CSRF (confirm()). Without a session there is
+ * nothing to end: the signed-out page. Never an open redirect.
  */
 class EndSessionController
 {
-    public function __construct(private ClientRepository $clients) {}
+    public function __construct(
+        private ClientRepository $clients,
+        private IdpSessions $sessions,
+    ) {}
 
     public function __invoke(Request $request): RedirectResponse|View
     {
-        $idTokenHint = (string) $request->query('id_token_hint', '');
         $postLogoutRedirectUri = (string) $request->query('post_logout_redirect_uri', '');
         $state = (string) $request->query('state', '');
+        $hint = $this->parseHint((string) $request->query('id_token_hint', ''));
+        $user = Auth::guard('web')->user();
 
-        // End the browser (Nexo ID) session. Idempotent: logging out a guest is a
-        // harmless no-op, so an unauthenticated hit is fine.
-        Auth::guard('web')->logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        $hintIsValid = $hint !== null && ($user === null || (string) $user->getAuthIdentifier() === $hint['sub']);
 
-        if ($postLogoutRedirectUri !== '' && $this->isRegisteredForHint($idTokenHint, $postLogoutRedirectUri)) {
+        if (! $hintIsValid) {
+            return $user !== null ? view('auth.logout-confirm') : view('auth.logged-out');
+        }
+
+        $this->endBrowserSession($request, also: $hint['sid']);
+
+        if ($postLogoutRedirectUri !== '' && $this->isRegistered($hint['aud'], $postLogoutRedirectUri)) {
             $target = $postLogoutRedirectUri;
             if ($state !== '') {
                 $target .= (str_contains($target, '?') ? '&' : '?').http_build_query(['state' => $state]);
@@ -50,21 +64,47 @@ class EndSessionController
             return redirect()->away($target);
         }
 
-        // No hint, unknown client, or an unregistered URI: our own page, never a
-        // redirect to a caller-supplied destination.
+        // Unknown client or an unregistered URI: our own page, never a redirect
+        // to a caller-supplied destination.
         return view('auth.logged-out');
     }
 
     /**
-     * True only when $uri is exactly a registered redirect URI of the client
-     * named in a genuine id_token_hint. The hint's signature is verified against
-     * our own signing key (a forged hint can't point `aud` at a real client);
-     * expiry is intentionally NOT checked — logout hints are routinely expired.
+     * The confirmed sign-out (POST, CSRF-protected) from «¿Cerrar sesión en
+     * todo Nexo?». Ends this browser's session; no redirect, since nothing
+     * here vouches for a destination.
      */
-    private function isRegisteredForHint(string $idTokenHint, string $uri): bool
+    public function confirm(Request $request): View
+    {
+        $this->endBrowserSession($request);
+
+        return view('auth.logged-out');
+    }
+
+    /**
+     * End this browser's IdP session (and $also, the hint's sid when it names
+     * another one), then the Nexo ID session itself. Idempotent for guests.
+     */
+    private function endBrowserSession(Request $request, ?string $also = null): void
+    {
+        $this->sessions->end([$this->sessions->current($request->session()), $also], 'end_session');
+
+        Auth::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+    }
+
+    /**
+     * The claims of a genuine id_token_hint — its signature verified against
+     * our own signing key, so a forged hint cannot point `aud` at a real
+     * client — or null when there is no usable hint.
+     *
+     * @return array{sub: string, sid: string|null, aud: array<int, string>}|null
+     */
+    private function parseHint(string $idTokenHint): ?array
     {
         if ($idTokenHint === '') {
-            return false;
+            return null;
         }
 
         try {
@@ -75,20 +115,41 @@ class EndSessionController
             $token = $config->parser()->parse($idTokenHint);
 
             if (! $token instanceof UnencryptedToken) {
-                return false;
+                return null;
             }
 
             if (! $config->validator()->validate($token, new SignedWith($config->signer(), $config->signingKey()))) {
-                return false; // forged or tampered hint
+                return null; // forged or tampered hint
             }
 
-            $audiences = (array) $token->claims()->get('aud', []);
+            $claims = $token->claims();
+            $sub = (string) $claims->get('sub', '');
+            $sid = $claims->get('sid');
         } catch (Throwable) {
-            return false; // malformed hint
+            return null; // malformed hint
         }
 
+        if ($sub === '') {
+            return null;
+        }
+
+        return [
+            'sub' => $sub,
+            'sid' => is_string($sid) && $sid !== '' ? $sid : null,
+            'aud' => array_map('strval', (array) $claims->get('aud', [])),
+        ];
+    }
+
+    /**
+     * True only when $uri is exactly a registered redirect URI of one of the
+     * hint's audiences.
+     *
+     * @param  array<int, string>  $audiences
+     */
+    private function isRegistered(array $audiences, string $uri): bool
+    {
         foreach ($audiences as $clientId) {
-            $client = $this->clients->find((string) $clientId);
+            $client = $this->clients->find($clientId);
             // redirect_uris is a Passport accessor (Attribute) casting to array.
             $registered = $client !== null ? (array) $client->getAttribute('redirect_uris') : [];
             if (in_array($uri, $registered, true)) {

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Auth\IdpSessions;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\RedirectResponse;
@@ -26,8 +27,14 @@ class AuthenticatedSessionController extends Controller
         return redirect()->intended(route('profile.show'));
     }
 
-    public function destroy(Request $request): RedirectResponse
+    /**
+     * Sign out of Nexo ID on this device: ends this device's IdP session, and
+     * with it the tools that signed in through it (back-channel, ADR-010).
+     */
+    public function destroy(Request $request, IdpSessions $sessions): RedirectResponse
     {
+        $sessions->end([$sessions->current($request->session())], 'logout');
+
         Auth::guard('web')->logout();
 
         // Invalidate the session and rotate the CSRF token on logout (AC-LOGIN-5).
