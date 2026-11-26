@@ -10,6 +10,12 @@
 @section('heading', __('Sign in to your account'))
 
 @section('content')
+    @if ($tool ?? null)
+        {{-- Only for a genuine authorize request (App\Auth\SignUpDestination),
+             the same line as the sign-up screen. --}}
+        <p class="-mt-4 mb-6 text-sm text-muted" data-signin-tool>{{ __('To continue to :app', ['app' => $tool]) }}</p>
+    @endif
+
     @if (session('status'))
         <p class="nexo-flash mb-4" role="status">{{ session('status') }}</p>
     @endif

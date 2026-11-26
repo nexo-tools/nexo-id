@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Auth\IdpSessions;
+use App\Auth\SignUpDestination;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\RedirectResponse;
@@ -12,9 +13,17 @@ use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
 {
-    public function create(): View
+    /**
+     * The sign-in screen. When the person came from a tool (its authorize
+     * request is the intended URL), it says which one, like the sign-up screen
+     * does: «Para entrar a Nexo Events». Without it, a person sent here from a
+     * tool saw a Nexo ID form that never said why (usability F3, 2026-11-26).
+     */
+    public function create(Request $request, SignUpDestination $destination): View
     {
-        return view('auth.login');
+        return view('auth.login', [
+            'tool' => $destination->toolName($request->session()->get('url.intended')),
+        ]);
     }
 
     public function store(LoginRequest $request): RedirectResponse

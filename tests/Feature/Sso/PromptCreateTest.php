@@ -308,3 +308,21 @@ it('AC-CREATE-2: with a session, prompt=login create is just prompt=login (the l
 
     $this->actingAs($user)->get(pcAuthorize($client, ['prompt' => 'login create']))->assertRedirect(route('login'));
 });
+
+it('the login of an authorize request names the tool too, like the sign-up screen', function () {
+    $client = pcClient();
+
+    $this->get(pcAuthorize($client))->assertRedirect(route('login'));
+
+    $this->get(route('login'))->assertOk()
+        ->assertSee('data-signin-tool', false)
+        ->assertSee('To continue to Nexo Links');
+    $this->get(route('login', ['lang' => 'es']))->assertOk()->assertSee('Para entrar a Nexo Links');
+});
+
+it('the login names no tool without a genuine authorize request', function () {
+    $this->get(route('login'))->assertOk()->assertDontSee('data-signin-tool', false);
+
+    $this->get(pcAuthorize('00000000-0000-0000-0000-000000000000'));
+    $this->get(route('login'))->assertOk()->assertDontSee('data-signin-tool', false)->assertDontSee('To continue to');
+});
