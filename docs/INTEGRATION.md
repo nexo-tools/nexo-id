@@ -59,7 +59,9 @@ GET {authorization_endpoint}?
   With a session, `create` is ignored (straight to the code); `none` wins over `create`. An instance that does not
   understand `create` shows its login, whose «Crear cuenta» keeps the request too — it degrades to one extra click.
 - The verified email is a hard gate: no `code` is issued to an account whose email is not verified yet (the person
-  is sent to verify it first; with `prompt=none`, `interaction_required`).
+  is sent to verify it first; with `prompt=none`, `interaction_required`). The request is kept as the destination
+  (an earlier one of the same client, such as its `prompt=create`, is not replaced): once the email is verified in
+  the same browser it resumes and your callback gets its `code`.
 
 The callback receives `?code=…&state=…`.
 

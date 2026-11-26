@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Routing\SortedMiddleware;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\Facades\URL;
 use Laravel\Passport\ClientRepository;
 
 /** Create a first-party public (PKCE) authorization-code client. */
@@ -284,3 +285,56 @@ it('AC-AUTH-3: the verified-email gate and prompt=create run after the session s
             ->and($at($check))->toBeGreaterThan($at(EnsureIdpSessionActive::class));
     }
 });
+
+it('AC-AUTH-3: an unverified session that reaches the authorize request goes back to it once the email is verified', function () {
+    // The verification notice keeps the request as the intended URL (like the
+    // guest redirect to the login does), so «verify, then return» holds for
+    // someone who signed up earlier and comes from a tool unverified.
+    $client = ssoClient();
+    [, $challenge] = pkce();
+    $user = User::factory()->unverified()->create();
+    $authorize = authorizeUrl($client->getKey(), 'https://client.test/callback', $challenge);
+
+    $this->actingAs($user)->get($authorize)->assertRedirect(route('verification.notice'));
+    $intended = (string) session('url.intended');
+    expect($intended)->toStartWith(url('/oauth/authorize?'))
+        ->and($intended)->toContain('client_id='.$client->getKey())
+        ->and($intended)->toContain('state=xyz-state');
+
+    $link = URL::temporarySignedRoute('verification.verify', now()->addHour(), [
+        'id' => $user->getKey(),
+        'hash' => sha1($user->getEmailForVerification()),
+    ]);
+    $this->get($link)->assertRedirect($intended);
+
+    $back = (string) $this->get($intended)->headers->get('Location');
+    expect($back)->toStartWith('https://client.test/callback?code=')
+        ->and($back)->toContain('state=xyz-state');
+});
+
+it('AC-AUTH-3: parameters sent as arrays by an unverified session are not a 500', function (array $extra) {
+    $client = ssoClient();
+    [, $challenge] = pkce();
+    $user = User::factory()->unverified()->create();
+    $query = [
+        'client_id' => $client->getKey(),
+        'redirect_uri' => 'https://client.test/callback',
+        'response_type' => 'code',
+        'scope' => 'openid',
+        'state' => 'xyz-state',
+        'code_challenge' => $challenge,
+        'code_challenge_method' => 'S256',
+        'prompt' => 'none',
+        ...$extra,
+    ];
+
+    $response = $this->actingAs($user)->get('/oauth/authorize?'.http_build_query($query));
+
+    expect($response->getStatusCode())->toBeLessThan(500);
+    expect((string) $response->headers->get('Location'))->not->toContain('code=');
+})->with([
+    'prompt[]' => [['prompt' => ['none']]],
+    'client_id[]' => [['client_id' => ['x']]],
+    'redirect_uri[]' => [['redirect_uri' => ['https://client.test/callback']]],
+    'state[]' => [['state' => ['x']]],
+]);

@@ -196,6 +196,18 @@ it('AC-CREATE-4: an unregistered redirect_uri names no tool and opens no redirec
     $this->get(route('register'))->assertOk()->assertDontSee('data-signup-tool', false);
 });
 
+it('AC-CREATE-4: an error Passport sends back to the tool (an unknown scope) stays that error, not the sign-up screen', function () {
+    $client = pcClient();
+
+    $location = (string) $this->get(pcAuthorize($client, ['prompt' => 'create', 'scope' => 'openid admin']))->headers->get('Location');
+
+    // Only Passport's «sign in first» becomes /register; any other answer of
+    // a valid request goes back untouched and leaves no intended URL behind.
+    expect($location)->toStartWith(PC_CALLBACK.'?')
+        ->and($location)->toContain('error=invalid_scope')
+        ->and(session('url.intended'))->toBeNull();
+});
+
 it('AC-CREATE-4: a revoked client names no tool', function () {
     $client = pcClient();
     $client->forceFill(['revoked' => true])->save();
@@ -249,6 +261,31 @@ it('AC-CREATE-5: signing up never skips the email verification (no code until th
     // Asking for create again while signed in (unverified) changes nothing.
     $again = $this->get(pcAuthorize($client, ['prompt' => 'create']));
     $again->assertRedirect(route('verification.notice'));
+});
+
+it('AC-CREATE-5: asking the same tool again before verifying keeps the sign-up request; another tool replaces it', function () {
+    Notification::fake();
+    $client = pcClient();
+    $other = pcClient('events-prod', ['https://nexoevents.alvarocdev.com/auth/nexo/callback']);
+
+    $this->get(pcAuthorize($client, ['prompt' => 'create']));
+    $signUp = (string) session('url.intended');
+    $user = pcRegister();
+
+    // The same tool again (a plain sign-in, new state): the sign-up request
+    // stays — the tool keeps that flow for an hour, a sign-in flow ten minutes.
+    $this->get(pcAuthorize($client, ['state' => 'later']))->assertRedirect(route('verification.notice'));
+    expect(session('url.intended'))->toBe($signUp);
+
+    // Another tool: the latest destination wins, and verifying resumes it.
+    $this->get(pcAuthorize($other, ['state' => 'events'], 'https://nexoevents.alvarocdev.com/auth/nexo/callback'))
+        ->assertRedirect(route('verification.notice'));
+    $intended = (string) session('url.intended');
+    expect($intended)->toContain('client_id='.$other->getKey())->and($intended)->toContain('state=events');
+
+    $this->get(pcVerificationLink($user))->assertRedirect($intended);
+    expect((string) $this->get($intended)->headers->get('Location'))
+        ->toStartWith('https://nexoevents.alvarocdev.com/auth/nexo/callback?code=');
 });
 
 it('AC-CREATE-5: the sign-up redirect is not cacheable', function () {

@@ -165,3 +165,10 @@
    that asked — its `url + entry` from the registry, which signs in again with zero clicks — when the request's
    `client_id` is a non-revoked client of a registry tool; otherwise to `/profile`. The tool's local session has
    already ended by then, so sending the person to Nexo ID's account left them outside the tool.
+4. **Independent review (same day).** The verified-email gate now keeps the authorize request it stops as
+   `url.intended` (like the guest redirect to the login does), so verifying the email resumes it: an account that
+   signed up earlier and reached a tool unverified used to end on `/profile`, and one that went from tool A's
+   sign-up to tool B came back to A. An intended authorize request of the **same** client is left alone — it is
+   the `prompt=create` one, whose flow the tool keeps for an hour, while a later plain sign-in flow lasts ten
+   minutes. Its parameters are read as plain strings only: now that the gate really runs, `?prompt[]=none` from
+   an unverified session was a 500.
