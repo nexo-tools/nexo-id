@@ -15,8 +15,10 @@ use Illuminate\Notifications\Messages\MailMessage;
  * i18n cannot reach. The identity provider of a Spanish-first ecosystem was
  * mailing "Verify Email Address" — the first thing a new account ever sees.
  *
- * Queued for the family reason (C2): a slow relay must not turn a sign-up into
- * a failed request for an account that was in fact created.
+ * Sent right after the response by User::sendEmailVerificationNotification()
+ * (notifyNow, once the response has been flushed); queued only when that direct
+ * send fails, for the family reason (C2): a slow or failing relay must not turn a
+ * sign-up into a failed request for an account that was in fact created.
  */
 class VerifyEmailQueued extends VerifyEmail implements ShouldQueue
 {

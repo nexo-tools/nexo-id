@@ -13,8 +13,10 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Log;
 use Laravel\Passport\Contracts\OAuthenticatable;
 use Laravel\Passport\HasApiTokens;
+use Throwable;
 
 #[Fillable(['display_name', 'email', 'password', 'locale'])]
 #[Hidden(['password', 'remember_token'])]
@@ -67,11 +69,11 @@ class User extends Authenticatable implements MustVerifyEmail, OAuthenticatable
     }
 
     /**
-     * Both auth mails go out queued, in this product's template and language,
-     * with the locale pinned at dispatch (family rules C2 and C3). The queue
-     * worker has no request to read a locale from, which is exactly how the
-     * identity provider of a Spanish-first ecosystem ended up mailing
-     * "Verify Email Address" to every new account.
+     * Both auth mails go out in this product's template and language, with the
+     * locale pinned at dispatch (family rules C2 and C3). The queue worker has
+     * no request to read a locale from, which is exactly how the identity
+     * provider of a Spanish-first ecosystem ended up mailing "Verify Email
+     * Address" to every new account.
      *
      * users.locale stays reserved and unwritten: nothing in the product lets a
      * person choose a language yet, and guessing one from a request would make
@@ -82,8 +84,29 @@ class User extends Authenticatable implements MustVerifyEmail, OAuthenticatable
         $this->notify((new ResetPasswordQueued($token))->locale(app()->getLocale()));
     }
 
+    /**
+     * The verification mail goes out right after the response, not through the
+     * queue: the hosting's cron drains the queue once a minute, so somebody who
+     * had just created their account from a tool waited up to a minute in front
+     * of «Verifica tu correo» (F3, 2026-11-26). The sign-up still never waits on
+     * the mail relay (C2): the send runs once the response has been flushed
+     * (terminating), and if the relay fails the queued notification retries it,
+     * as before.
+     */
     public function sendEmailVerificationNotification(): void
     {
-        $this->notify((new VerifyEmailQueued)->locale(app()->getLocale()));
+        $locale = app()->getLocale();
+
+        app()->terminating(function () use ($locale): void {
+            try {
+                $this->notifyNow((new VerifyEmailQueued)->locale($locale));
+            } catch (Throwable $e) {
+                Log::warning('Verification mail sent to the queue after a failed direct send.', [
+                    'user' => $this->getKey(),
+                    'error' => $e->getMessage(),
+                ]);
+                $this->notify((new VerifyEmailQueued)->locale($locale));
+            }
+        });
     }
 }

@@ -10,7 +10,7 @@ it('AC-REG-1: shows the registration form', function () {
     $this->get('/register')->assertOk()->assertSee('Create your account');
 });
 
-it('AC-REG-1: creates an unverified user and queues a verification email', function () {
+it('AC-REG-1: creates an unverified user and asks for the verification email', function () {
     Event::fake();
 
     $response = $this->post('/register', [
