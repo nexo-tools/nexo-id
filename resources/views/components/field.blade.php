@@ -19,7 +19,7 @@
         @if ($autocomplete) autocomplete="{{ $autocomplete }}" @endif
         @if ($required) required @endif
         @error($name) aria-invalid="true" aria-describedby="{{ $errorId }}" @enderror
-        {{ $attributes->merge(['class' => 'w-full rounded-lg border border-control bg-bg px-3 py-2 text-ink focus:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring']) }}
+        {{ $attributes->merge(['class' => 'min-h-11 w-full rounded-lg border border-control bg-bg px-3 py-2 text-ink focus:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring']) }}
     >
     @error($name)
         <p id="{{ $errorId }}" class="mt-1 text-sm text-danger">{{ $message }}</p>

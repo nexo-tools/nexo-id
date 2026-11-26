@@ -337,12 +337,19 @@ it('H-nexoid-10: deleting the account removes every row Nexo ID holds about it â
     );
     DB::table('oauth_access_tokens')->insert(['id' => Str::random(80), 'user_id' => $bystander->getKey(), 'client_id' => $owned->getKey(), 'scopes' => '[]', 'revoked' => false, 'created_at' => now(), 'updated_at' => now(), 'expires_at' => now()->addHour()]);
     $bystanderBefore = acLeftovers($bystander);
+    // Refresh tokens hang off access_token_id, not user_id: once the access
+    // tokens are gone acLeftovers() cannot find them, so they are pinned by id.
+    $refreshIds = DB::table('oauth_refresh_tokens')
+        ->whereIn('access_token_id', DB::table('oauth_access_tokens')->where('user_id', $user->getKey())->select('id'))
+        ->pluck('id')->all();
+    expect($refreshIds)->not->toBeEmpty();
 
     $this->actingAs($user)
         ->delete('/profile', ['delete_password' => 'right-password-1'])
         ->assertRedirect(route('home'));
 
     expect(acLeftovers($user, [$owned->getKey()]))->toBe([]);
+    expect(DB::table('oauth_refresh_tokens')->whereIn('id', $refreshIds)->count())->toBe(0);
     $this->assertGuest('web');
 
     // The bystander keeps all of it â€” except the token issued to the app the
@@ -460,4 +467,20 @@ it('H-nexoid-06: past five sessions the rest fold away, the current device first
     expect(strpos($html, 'data-session-current'))->toBeLessThan($fold);
     expect($html)->toContain(e(trans_choice('{1} Show 1 more session|[2,*] Show :count more sessions', 3, ['count' => 3])))
         ->toContain(e(__('Active now')));
+});
+
+it('every text field of the account and auth screens is a 44 px touch target', function () {
+    // <x-field> (login, register, password recovery, profile) and the delete
+    // confirmation measured 42 px: under the STANDARD's 44 px target.
+    $user = User::factory()->create();
+
+    foreach ([['/login', null], ['/register', null], ['/forgot-password', null], ['/profile', $user]] as [$path, $as]) {
+        $html = ($as ? $this->actingAs($as) : $this)->get($path)->assertOk()->getContent();
+        preg_match_all('/<input\b[^>]*\btype="(?:text|email|password)"[^>]*>/s', $html, $inputs);
+
+        expect($inputs[0])->not->toBeEmpty();
+        foreach ($inputs[0] as $input) {
+            expect($input)->toContain('min-h-11');
+        }
+    }
 });

@@ -104,7 +104,7 @@
                 </ul>
                 @if ($sessions->count() > 5)
                     <details class="mt-3" data-sessions-more>
-                        <summary class="inline-flex min-h-11 cursor-pointer items-center text-sm font-medium text-primary hover:text-primary-hover">{{ trans_choice('{1} Show 1 more session|[2,*] Show :count more sessions', $sessions->count() - 5, ['count' => $sessions->count() - 5]) }}</summary>
+                        <summary class="inline-flex min-h-11 cursor-pointer items-center text-sm font-medium text-link hover:text-link-hover">{{ trans_choice('{1} Show 1 more session|[2,*] Show :count more sessions', $sessions->count() - 5, ['count' => $sessions->count() - 5]) }}</summary>
                         <ul class="mt-3 flex flex-col gap-3">
                             @foreach ($sessions->slice(5) as $session)
                                 @include('profile.session-row', ['session' => $session])
@@ -162,7 +162,7 @@
                     <label for="delete_password" class="mb-1 block text-sm text-muted">{{ __('Your password, to confirm') }}</label>
                     <input type="password" name="delete_password" id="delete_password" required autocomplete="current-password"
                            @error('delete_password', 'deleteAccount') aria-invalid="true" aria-describedby="delete_password-error" @enderror
-                           class="w-full rounded-lg border border-control bg-bg px-3 py-2 text-ink focus:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+                           class="min-h-11 w-full rounded-lg border border-control bg-bg px-3 py-2 text-ink focus:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
                     @error('delete_password', 'deleteAccount')
                         <p id="delete_password-error" class="mt-1 text-sm text-danger">{{ $message }}</p>
                     @enderror

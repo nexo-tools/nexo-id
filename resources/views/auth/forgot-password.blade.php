@@ -23,6 +23,6 @@
     </form>
 
     <p class="mt-6 text-center text-sm text-muted">
-        <a href="{{ route('login') }}" class="text-primary hover:text-primary-hover">{{ __('Back to sign in') }}</a>
+        <a href="{{ route('login') }}" class="inline-flex min-h-11 items-center text-link hover:text-link-hover">{{ __('Back to sign in') }}</a>
     </p>
 @endsection

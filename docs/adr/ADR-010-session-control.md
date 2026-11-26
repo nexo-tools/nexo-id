@@ -73,7 +73,7 @@
 
    | Event in Nexo ID | Sids that end | Also |
    |---|---|---|
-   | `POST /logout` | this device's | lands on `GET /signed-out` («Cerraste sesión en todo Nexo», «Volver a entrar»). Works without a session too (an expired page lands there instead of `/login`); a `419` on it shows the confirmation below |
+   | `POST /logout` | this device's | lands on `GET /signed-out` («Cerraste sesión en todo Nexo», «Volver a entrar»). Works without a session too (an expired page lands there instead of `/login`); a `419` on it redirects to the confirmation below (`App\Http\ExpiredSignOut`: a redirect, so the page runs the whole `web` group — language, CSP, `no-store`; a `419` on `logout/everywhere` goes back to `/profile`, and one on the confirmation itself asks again) |
    | `GET /oauth/logout` with a valid `id_token_hint` | the hint's and this device's | redirects to `post_logout_redirect_uri` only if it is a registered redirect URI of the hint's client |
    | `GET /oauth/logout` without a valid hint, with a session | none until confirmed: «¿Cerrar sesión en todo Nexo?», a CSRF-protected `POST /oauth/logout` | mitigates the forced logout by link (S9). With `client_id` + `post_logout_redirect_uri` registered for **that** client (a tool whose session expired has no id_token left), confirming returns there (with `state`); otherwise `/signed-out` |
    | `GET /oauth/logout` without a hint and without a session | none (nothing to end) | redirects at once to `post_logout_redirect_uri` when it is registered for `client_id`; otherwise the signed-out page |

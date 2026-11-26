@@ -31,11 +31,11 @@
         @endif
 
         <p class="mt-10 border-t border-line pt-4 text-sm">
-            <a href="{{ route('legal.privacy') }}" class="text-primary underline hover:text-primary-hover">{{ __('Privacy') }}</a>
+            <a href="{{ route('legal.privacy') }}" class="text-link underline hover:text-link-hover">{{ __('Privacy') }}</a>
             ·
-            <a href="{{ route('legal.terms') }}" class="text-primary underline hover:text-primary-hover">{{ __('Terms') }}</a>
+            <a href="{{ route('legal.terms') }}" class="text-link underline hover:text-link-hover">{{ __('Terms') }}</a>
             ·
-            <a href="{{ route('help') }}" class="text-primary underline hover:text-primary-hover">{{ __('nexo.help.title') }}</a>
+            <a href="{{ route('help') }}" class="text-link underline hover:text-link-hover">{{ __('nexo.help.title') }}</a>
         </p>
     </article>
 @endsection

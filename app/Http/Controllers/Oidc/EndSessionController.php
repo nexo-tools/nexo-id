@@ -50,10 +50,10 @@ class EndSessionController
 
     public function __invoke(Request $request): RedirectResponse|View
     {
-        $postLogoutRedirectUri = (string) $request->query('post_logout_redirect_uri', '');
-        $state = (string) $request->query('state', '');
-        $clientId = (string) $request->query('client_id', '');
-        $hint = $this->parseHint((string) $request->query('id_token_hint', ''));
+        $postLogoutRedirectUri = $this->param($request, 'post_logout_redirect_uri');
+        $state = $this->param($request, 'state');
+        $clientId = $this->param($request, 'client_id');
+        $hint = $this->parseHint($this->param($request, 'id_token_hint'));
         $user = Auth::guard('web')->user();
 
         $hintIsValid = $hint !== null && ($user === null || (string) $user->getAuthIdentifier() === $hint['sub']);
@@ -97,12 +97,12 @@ class EndSessionController
         $this->endBrowserSession($request);
 
         $return = $this->registeredReturn(
-            [(string) $request->input('client_id', '')],
-            (string) $request->input('post_logout_redirect_uri', ''),
+            [$this->param($request, 'client_id')],
+            $this->param($request, 'post_logout_redirect_uri'),
         );
 
         return $return !== null
-            ? redirect()->away($this->withState($return, (string) $request->input('state', '')))
+            ? redirect()->away($this->withState($return, $this->param($request, 'state')))
             : redirect()->route('signed-out');
     }
 
@@ -192,6 +192,17 @@ class EndSessionController
         }
 
         return null;
+    }
+
+    /**
+     * A query or form parameter as a string, or '' when it is missing or not a
+     * plain string (`?client_id[]=x` must not become a 500).
+     */
+    private function param(Request $request, string $key): string
+    {
+        $value = $request->input($key);
+
+        return is_string($value) ? $value : '';
     }
 
     private function withState(string $target, string $state): string

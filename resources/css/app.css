@@ -43,6 +43,12 @@
     --color-primary-subtle: var(--nexo-primary-subtle);
     --color-primary-subtle-fg: var(--nexo-primary-subtle-fg);
 
+    /* Text links: the brand's link colour (violet-700 light, violet-300 dark),
+       never the button fill — text-primary on the dark card is 3.45:1, under
+       WCAG's 4.5:1 for text (LinkColorTest). Same tokens as the other apps. */
+    --color-link: var(--nexo-link);
+    --color-link-hover: var(--nexo-link-hover);
+
     /* Semantic surfaces/text/lines — content uses bg-bg / bg-surface / text-ink /
        text-muted / text-subtle / border-line and stays theme-aware. */
     --color-bg: var(--nexo-bg);

@@ -22,9 +22,9 @@ Laravel 13 + MySQL, local dev via Sail (mysql + mailpit). Blade + Tailwind v4 (V
 |---|---|---|---|
 | Registration | `GET/POST register` (guest, throttle 10/min) | `Auth/RegisteredUserController` + `RegisterRequest` | AC-REG-* |
 | Email verification | `GET verify-email`, signed `GET verify-email/{id}/{hash}`, `POST email/verification-notification` (throttle 6/min) | `Auth/EmailVerificationPromptController`, `VerifyEmailController`, `EmailVerificationNotificationController` | AC-VERIFY-* |
-| Login / logout | `GET/POST login` (guest), `POST logout`, `POST logout/everywhere` (auth) | `Auth/AuthenticatedSessionController` + `LoginRequest` (per-credential RateLimiter); `SessionController@destroyAll` | AC-LOGIN-*, AC-BCL-P3 |
+| Login / logout | `GET/POST login` (guest), `POST logout` (with or without a session), `POST logout/everywhere` (auth), `GET signed-out` («Cerraste sesión en todo Nexo»; signed in → `/profile`) | `Auth/AuthenticatedSessionController` + `LoginRequest` (per-credential RateLimiter); `SessionController@destroyAll`; a `419` on a sign-out form → `App\Http\ExpiredSignOut` (redirect to the confirmation) | AC-LOGIN-*, AC-BCL-P3 |
 | Password recovery | `GET/POST forgot-password`, `GET reset-password/{token}`, `POST reset-password` (throttle 5/min) | `Auth/PasswordResetLinkController`, `NewPasswordController` | AC-PWD-* |
-| Profile & sessions | `GET/PATCH profile`, `PUT profile/password`, `DELETE profile/sessions[/{id}]` (auth + **verified**) | `ProfileController`, `PasswordController`, `SessionController` | AC-PROFILE-*, AC-SESS-* |
+| Profile & sessions | `GET/PATCH profile`, `PUT profile/password`, `DELETE profile/sessions[/{id}]`, `DELETE profile` (delete the account, password-confirmed, throttle 5/min) (auth + **verified**) | `ProfileController` (+ `App\Auth\ConnectedTools` for «Herramientas conectadas», `App\Actions\DeleteAccount`), `PasswordController`, `SessionController` | AC-PROFILE-*, AC-SESS-* |
 
 Shared: `App\Actions\ChangeUserPassword` (sets password, sends `PasswordChanged` notification, revokes other DB sessions and their IdP sessions) is used by both password reset and profile password change (AC-PWD-6). `App\Support\SessionSummary` is the DTO for the session list.
 
@@ -34,7 +34,7 @@ Shared: `App\Actions\ChangeUserPassword` (sets password, sends `PasswordChanged`
 
 ## i18n
 
-Base language English (source strings are the keys). `scripts/generate-translations.mjs` extracts `__()` literals and builds `lang/{es,pt}.json` from `scripts/translations/{es,pt}.json`; a guardian Pest test + CI `--check` fail on drift. Framework messages (validation, auth) resolve from vendor in English; es/pt of those are backlog (see SPEC reconciliation).
+Base language English (source strings are the keys). `scripts/generate-translations.mjs` extracts `__()` literals and builds `lang/{es,pt}.json` from `scripts/translations/{es,pt}.json`; a guardian Pest test + CI `--check` fail on drift. Framework messages (validation, auth, passwords) have their es/pt in `lang/{es,pt}/{auth,passwords,validation}.php` (2026-11-26, H-nexoid-12).
 
 ## SSO provider (Phase 2)
 

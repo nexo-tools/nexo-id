@@ -24,6 +24,6 @@
     </a>
 
     <p class="mt-6 text-center text-sm">
-        <a href="{{ url('/') }}" class="inline-flex min-h-11 items-center text-primary hover:text-primary-hover">{{ __('Back to home') }}</a>
+        <a href="{{ url('/') }}" class="inline-flex min-h-11 items-center text-link hover:text-link-hover">{{ __('Back to home') }}</a>
     </p>
 @endsection

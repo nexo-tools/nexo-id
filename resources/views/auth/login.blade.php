@@ -34,7 +34,7 @@
             </button>
 
             <p class="mt-4 text-center text-sm">
-                <a href="{{ route('password.request') }}" class="inline-flex min-h-11 items-center text-primary hover:text-primary-hover">{{ __('Forgot your password?') }}</a>
+                <a href="{{ route('password.request') }}" class="inline-flex min-h-11 items-center text-link hover:text-link-hover">{{ __('Forgot your password?') }}</a>
             </p>
         </form>
     </x-nexo-sign-in-options>

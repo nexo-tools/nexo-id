@@ -27,6 +27,6 @@
     </form>
 
     <div class="mt-6 text-center text-sm">
-        <a href="{{ route('profile.show') }}" class="inline-flex min-h-11 items-center text-primary hover:text-primary-hover">{{ __('Keep me signed in') }}</a>
+        <a href="{{ route('profile.show') }}" class="inline-flex min-h-11 items-center text-link hover:text-link-hover">{{ __('Keep me signed in') }}</a>
     </div>
 @endsection

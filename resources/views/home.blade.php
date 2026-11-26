@@ -125,7 +125,7 @@
         <p class="mt-4">
             {{-- inline-flex + min-h-11: a thumb needs 44px, and an inline link
                  is 18 (STANDARD.md, mobile-first). --}}
-            <a href="{{ route('help') }}" class="inline-flex min-h-11 items-center text-sm font-medium text-primary hover:text-primary-hover hover:underline">{{ __('All questions') }}</a>
+            <a href="{{ route('help') }}" class="inline-flex min-h-11 items-center text-sm font-medium text-link hover:text-link-hover hover:underline">{{ __('All questions') }}</a>
         </p>
     </section>
 

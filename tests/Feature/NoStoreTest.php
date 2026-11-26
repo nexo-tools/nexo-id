@@ -53,3 +53,11 @@ it('AC-NOSTORE-1: public pages and the public OIDC documents stay cacheable', fu
     expect((string) $this->get('/.well-known/openid-configuration')->headers->get('Cache-Control'))->not->toContain('no-store');
     expect((string) $this->get('/oauth/jwks')->headers->get('Cache-Control'))->not->toContain('no-store');
 });
+
+it('AC-NOSTORE-1: the sign-out pages are never cached, for a guest too', function () {
+    // They are what the back button lands on after signing out: a cached copy
+    // of the redirect or of the page could bring an older state back.
+    expectNoStore($this->get('/signed-out')->assertOk());
+    expectNoStore($this->get('/signed-out?reason=everywhere')->assertOk());
+    expectNoStore($this->post('/logout')->assertRedirect());
+});

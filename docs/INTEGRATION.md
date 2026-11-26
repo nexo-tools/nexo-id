@@ -110,8 +110,12 @@ GET {end_session_endpoint}?id_token_hint={the id_token you kept}
 
 With a valid hint (our signature; expiry is ignored) Nexo ID ends that session right away and redirects to
 `post_logout_redirect_uri` if it is one of your registered redirect URIs — otherwise it shows its own "signed out"
-page. **Without a valid hint** it asks the person first («¿Cerrar sesión en todo Nexo?») and never redirects: a bare
-link must not be able to sign someone out of everything. Your CSP must allow the issuer in `form-action`, since
+page. **Without a valid hint** it asks the person first («¿Cerrar sesión en todo Nexo?»): a bare link must not be
+able to sign someone out of everything. A tool whose own session already expired has no id_token left to send, so it
+says who it is instead — `client_id={your client_id}` plus `post_logout_redirect_uri` (and `state`). Nexo ID honours
+that URI only when it is one of **that** client's registered redirect URIs: after the confirmation when the browser
+still has a Nexo ID session, at once when it has none. Any other URI, or none, ends on Nexo ID's own "signed out"
+page. With a hint and a `client_id`, the `client_id` must be one of the hint's audiences. Your CSP must allow the issuer in `form-action`, since
 your logout form's redirect goes there.
 
 **Back-channel (Nexo ID tells you).** Register a `backchannel_logout_uri` (§2). When a Nexo ID session in which

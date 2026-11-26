@@ -129,5 +129,6 @@
     "Your password was changed.": "Sua senha foi alterada.",
     "Your password, to confirm": "Sua senha, para confirmar",
     "Your profile was updated.": "Seu perfil foi atualizado.",
-    "{1} Show 1 more session|[2,*] Show :count more sessions": "{1} Ver mais 1 sessão|[2,*] Ver mais :count sessões"
+    "{1} Show 1 more session|[2,*] Show :count more sessions": "{1} Ver mais 1 sessão|[2,*] Ver mais :count sessões",
+    "The page expired. Try again.": "A página tinha expirado. Tente de novo."
 }

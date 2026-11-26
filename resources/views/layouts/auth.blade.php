@@ -13,7 +13,7 @@
          family look broken, so Alvaro removed the exception on 2026-08-02:
          six tools, one chrome. The brand now lives in the header's wordmark —
          no centered wordmark above the card. --}}
-    <a href="#contenido" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-surface focus:px-4 focus:py-2 focus:text-primary">
+    <a href="#contenido" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-surface focus:px-4 focus:py-2 focus:text-link">
         {{ __('Skip to content') }}
     </a>
 

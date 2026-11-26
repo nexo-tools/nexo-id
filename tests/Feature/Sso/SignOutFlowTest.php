@@ -211,23 +211,80 @@ it('POST /logout with an expired page asks «¿Cerrar sesión en todo Nexo?» in
     $user = User::factory()->create();
     $sid = sofSignIn($user);
 
+    // A redirect to the GET confirmation, never a page rendered from the
+    // exception: that one skipped the web group's locale, CSP and no-store.
     $this->post(route('logout'), ['_token' => 'stale-token'])
+        ->assertRedirect(route('openid.end_session_endpoint'));
+
+    $this->assertAuthenticatedAs($user, 'web');
+    expect(IdpSession::query()->find($sid)->ended_at)->toBeNull();
+
+    $this->get(route('openid.end_session_endpoint'))
         ->assertOk()
         ->assertViewIs('auth.logout-confirm')
         ->assertSee(route('openid.end_session.confirm'))
         ->assertSee('name="_token"', false);
+});
+
+it('the expired-page confirmation goes through the whole web group: the person\'s language, the CSP and no-store', function () {
+    sofEnforceCsrf();
+    $user = User::factory()->create();
+    sofSignIn($user);
+
+    $this->post(route('logout'), ['_token' => 'stale-token'])->assertRedirect();
+
+    $page = $this->withUnencryptedCookie('nexo-lang', 'en')->get(route('openid.end_session_endpoint'));
+
+    $page->assertOk()->assertSee('Sign out of all of Nexo?')->assertSee($user->email);
+    expect($page->headers->get('Cache-Control'))->toContain('no-store')
+        ->and((string) $page->headers->get('Content-Security-Policy'))->toContain('form-action');
+});
+
+it('«Cerrar sesión en todos los dispositivos» with an expired page goes back to the account, signing nobody out', function () {
+    // Not the «this device» confirmation: confirming it would leave the other
+    // devices signed in while the person asked for all of them.
+    sofEnforceCsrf();
+    $user = User::factory()->create();
+    $sid = sofSignIn($user);
+
+    $this->post(route('logout.everywhere'), ['_token' => 'stale-token'])
+        ->assertRedirect(route('profile.show'))
+        ->assertSessionHas('status', __('The page expired. Try again.'));
 
     $this->assertAuthenticatedAs($user, 'web');
     expect(IdpSession::query()->find($sid)->ended_at)->toBeNull();
 });
 
-it('«Cerrar sesión en todos los dispositivos» with an expired page asks the same', function () {
+it('the confirmation itself with an expired page asks again, keeping the tool\'s return (validated again by the GET)', function () {
     sofEnforceCsrf();
+    $client = sofClient('tool-a.test');
+    $sid = sofSignIn(User::factory()->create());
+
+    $this->post(route('openid.end_session.confirm'), [
+        '_token' => 'stale-token',
+        'client_id' => $client->getKey(),
+        'post_logout_redirect_uri' => 'https://tool-a.test/auth/nexo/signed-out',
+        'state' => 'st-9',
+        'evil' => 'x',
+    ])->assertRedirect(route('openid.end_session_endpoint', [
+        'client_id' => $client->getKey(),
+        'post_logout_redirect_uri' => 'https://tool-a.test/auth/nexo/signed-out',
+        'state' => 'st-9',
+    ]));
+
+    $this->assertAuthenticated('web');
+    expect(IdpSession::query()->find($sid)->ended_at)->toBeNull();
+});
+
+it('a malformed end_session parameter is ignored, not a server error', function () {
     sofSignIn(User::factory()->create());
 
-    $this->post(route('logout.everywhere'), ['_token' => 'stale-token'])
-        ->assertOk()->assertViewIs('auth.logout-confirm');
-    $this->assertAuthenticated('web');
+    $this->get('/oauth/logout?client_id[]=x&post_logout_redirect_uri[]=https://evil.test&state[]=s&id_token_hint[]=h')
+        ->assertOk()->assertViewIs('auth.logout-confirm')
+        ->assertDontSee('name="post_logout_redirect_uri"', false);
+
+    $this->post(route('openid.end_session.confirm'), ['client_id' => ['x'], 'post_logout_redirect_uri' => ['https://evil.test']])
+        ->assertRedirect(route('signed-out'));
 });
 
 it('POST /logout with an expired page and no session left lands on the signed-out page', function () {
@@ -254,7 +311,7 @@ it('a cross-site POST /logout (a forged sign-out) only gets the confirmation', f
 
     $this->withHeader('Sec-Fetch-Site', 'cross-site')
         ->post(route('logout'))
-        ->assertOk()->assertViewIs('auth.logout-confirm');
+        ->assertRedirect(route('openid.end_session_endpoint'));
 
     $this->assertAuthenticatedAs($user, 'web');
     expect(IdpSession::query()->find($sid)->ended_at)->toBeNull();

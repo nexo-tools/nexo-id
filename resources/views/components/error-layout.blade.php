@@ -25,7 +25,7 @@
         <div class="mt-5 flex flex-wrap items-center justify-center gap-3">
             <a href="{{ url('/') }}"
                class="nexo-btn nexo-btn--primary">{{ __('Back to home') }}</a>
-            <a href="{{ route('help') }}" class="text-sm font-medium text-primary hover:text-primary-hover">{{ __('nexo.help.title') }}</a>
+            <a href="{{ route('help') }}" class="text-sm font-medium text-link hover:text-link-hover">{{ __('nexo.help.title') }}</a>
         </div>
     </main>
 

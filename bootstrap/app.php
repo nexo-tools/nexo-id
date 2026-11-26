@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\ExpiredSignOut;
 use App\Http\Middleware\EnsureIdpSessionActive;
 use App\Http\Middleware\NexoNoStore;
 use App\Http\Middleware\NoStoreForSensitiveResponses;
@@ -10,8 +11,6 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
-use Illuminate\Session\TokenMismatchException;
-use Illuminate\Support\Facades\Auth;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -51,23 +50,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->report(fn (Throwable $e) => OperatorAlerts::report($e));
 
         // «Cerrar sesión» with an expired page (CONTRATO-F3 §0.1, v2.1 item 2):
-        // a 419 there is a person who wants out and an old CSRF token, not an
-        // attack — a forged cross-site POST is exactly what this must not
-        // honour, so it never signs anybody out by itself. Signed in (the
-        // «remember me» cookie still holds): the same «¿Cerrar sesión en todo
-        // Nexo?» confirmation end_session asks, a fresh CSRF-protected POST.
-        // Not signed in any more: there is nothing to end — the signed-out page.
-        $exceptions->render(function (Throwable $e, Request $request) {
-            $mismatch = $e instanceof TokenMismatchException || $e->getPrevious() instanceof TokenMismatchException;
-
-            if (! $mismatch || ! $request->isMethod('POST') || ! $request->routeIs('logout', 'logout.everywhere')) {
-                return null;
-            }
-
-            return Auth::guard('web')->check()
-                ? response()->view('auth.logout-confirm', [], 200)
-                : redirect()->route('signed-out');
-        });
+        // never a 419 and never a sign-out by itself — a redirect to the
+        // «¿Cerrar sesión en todo Nexo?» confirmation (or the signed-out page).
+        // See App\Http\ExpiredSignOut for why it redirects instead of rendering.
+        $exceptions->render(fn (Throwable $e, Request $request) => ExpiredSignOut::render($e, $request));
 
         // Machine endpoints answer JSON (a 401, not an HTML login redirect) when
         // unauthenticated. /oauth/userinfo is token-guarded (auth:api); the

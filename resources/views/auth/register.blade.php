@@ -20,6 +20,6 @@
 
     <p class="mt-6 text-center text-sm text-muted">
         {{ __('Already have an account?') }}
-        <a href="{{ url('/login') }}" class="text-primary hover:text-primary-hover">{{ __('Sign in') }}</a>
+        <a href="{{ url('/login') }}" class="inline-flex min-h-11 items-center text-link hover:text-link-hover">{{ __('Sign in') }}</a>
     </p>
 @endsection
