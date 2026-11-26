@@ -55,14 +55,14 @@ Passport tables (`oauth_auth_codes`, `oauth_access_tokens`, `oauth_refresh_token
 - **AC-SID-2**: A password login starts the sid, and `session()->regenerate()` does not change it.
 - **AC-SID-3**: A session opened before session control gets a sid lazily on its first authorize.
 - **AC-SID-4**: A login through the «remember me» cookie also starts a sid.
-- **AC-SID-5**: A browser whose sid was ended elsewhere is signed out on its next request.
+- **AC-SID-5**: A browser whose sid was ended elsewhere is signed out on its next request; at `/oauth/authorize` with `prompt=none` it gets `error=login_required` back at the client, never a login page.
 - **AC-SID-6**: The registry prunes sessions ended >30 days ago and open ones idle >45 days.
 - **AC-BCL-P1**: Discovery announces `backchannel_logout_supported` and `backchannel_logout_session_supported`; `NEXO_OIDC_BACKCHANNEL=false` removes them.
 - **AC-BCL-P2**: The logout_token follows Back-Channel Logout 1.0 (form POST, `typ: logout+jwt`, RS256 verifiable with the JWKS, `iss`/`aud`/`iat`/`exp`=iat+120/uuid `jti`/`sub`/`sid`/`events`, no `nonce`), with a fresh `jti` per token.
-- **AC-BCL-P3**: Each event of ADR-010 §4 ends exactly its sids and notifies only the clients of those sids that registered a URI (logout, end_session with hint, «Cerrar esta sesión», «Cerrar las demás», «todos los dispositivos», password change/reset, account deletion with `sub`-only tokens); ending a sid twice notifies once.
-- **AC-BCL-P4**: A client that is down does not block the sign-out (parallel 2 s attempt) and is queued with backoff for 24 h; a definitive 4xx is not retried; more than `sync_max` deliveries go straight to the queue; each retry mints a fresh token.
+- **AC-BCL-P3**: Each event of ADR-010 §4 ends exactly its sids and notifies only the clients of those sids that registered a URI (logout, end_session with hint, «Cerrar esta sesión», «Cerrar las demás», «todos los dispositivos», password change/reset, account deletion with `sub`-only tokens); ending a sid twice, or from two requests at once, notifies once.
+- **AC-BCL-P4**: A client that is down does not block the sign-out (parallel 2 s attempt) and is queued with backoff for 24 h; a definitive 4xx is not retried; a redirect is never followed and counts as a failure; more than `sync_max` deliveries go straight to the queue; each retry mints a fresh token; on a `sync` queue a failed delivery never fails the sign-out.
 - **AC-BCL-P5**: The kill-switch sends and queues nothing, and sids still end.
-- **AC-BCL-P6**: end_session without a valid hint (none, forged, or another account's) asks for confirmation; only the CSRF-protected POST signs out.
+- **AC-BCL-P6**: end_session without a valid hint (none, forged, `alg=none`, HMAC-signed with the public key, or another account's) asks for confirmation; only the CSRF-protected POST signs out. An expired but genuine hint is valid.
 - **AC-CLIENT-3**: `nexo:sso-client --backchannel=` stores the back-channel URI (absolute http(s) only).
 - **AC-CLIENT-4**: `nexo:sso-client:update` sets/removes the back-channel URI and adds redirects, idempotently, printing the final state.
 - **AC-CSP-1**: `form-action` is `'self'` plus the origin of every other tool in the ecosystem registry (and `.htaccess` matches it, AC-SEC-1).

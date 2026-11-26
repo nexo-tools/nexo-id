@@ -133,9 +133,10 @@ account deletion, which means "every session of this `sub`"), and
 
 Validate it like the id_token (JWKS, `alg` RS256, `iss`, `aud`), plus: `iat` within a few minutes, `events` has the
 back-channel key, no `nonce`, `sid` or `sub` present, `jti` not seen before. Then revoke the matching local
-sessions and answer `200` with an empty body (`400 {"error":"invalid_request"}` if the token is invalid). Nexo ID
-waits at most 2 s (all tools in parallel) and retries a failed delivery — no connection, timeout, 5xx, 408, 429 —
-at 1, 5, 15 and 60 min and then hourly for 24 h; any other 4xx is not retried. The Laravel tools get all of this
+sessions and answer `200` with an empty body (`400 {"error":"invalid_request"}` if the token is invalid). Answer
+from the registered URI itself: Nexo ID does not follow redirects, so a 3xx counts as a failed delivery. Nexo ID
+waits at most 2 s (all tools in parallel) and retries a failed delivery — no connection, timeout, 3xx, 5xx, 408,
+429 — at 1, 5, 15 and 60 min and then hourly for 24 h; any other 4xx is not retried. The Laravel tools get all of this
 from the `nexo-sso-client` template.
 
 ## Framework shortcuts

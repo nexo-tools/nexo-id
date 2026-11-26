@@ -133,7 +133,7 @@ violations.
 - **uuid user columns**: migrations include `fix_oauth_user_id_columns_for_uuid_users` — never skip migrations; non-strict MySQL/MariaDB would otherwise truncate uuids silently.
 - **CSP `form-action` lists the tools' origins literally in `public/.htaccess`** (LiteSpeed serves that one, not the middleware's). A self-host on other domains edits them there too, or the sign-in → tool redirect is blocked.
 - **«Remember me» cut (2026-11-26, ADR-010):** migration `2026_11_26_000003_cut_remember_tokens_issued_under_the_400_day_policy` invalidates every «remember me» cookie issued under the old ~400-day policy, once, in the deploy's `migrate --force`. Nobody is signed out of an open session. To repeat it on purpose: `php artisan nexo:rotate-remember-tokens`.
-- **Back-channel retries ride the queue drain** (the per-minute scheduler entry, step 8): without the cron, a logout that a tool missed is never retried. Kill-switch: `NEXO_OIDC_BACKCHANNEL=false`.
+- **Back-channel retries ride the queue drain** (the per-minute scheduler entry, step 8): without the cron, a logout that a tool missed is never retried. Keep `QUEUE_CONNECTION=database`: on `sync` a missed delivery is only logged, never retried. Register the back-channel URI exactly as the tool serves it (https, final host): redirects are not followed. Kill-switch: `NEXO_OIDC_BACKCHANNEL=false`.
 
 ## Updates
 

@@ -43,7 +43,9 @@
      that breaks it fails in CI.
    - A browser whose sid was ended elsewhere is signed out of Nexo ID on its next request
      (`EnsureIdpSessionActive`). With the database session driver the revocations also delete the session rows;
-     with any other driver this is the only lock, so revocation does not depend on the driver.
+     with any other driver this is the only lock, so revocation does not depend on the driver. On
+     `/oauth/authorize` the request then goes on as a guest, so a tool's `prompt=none` re-validation still gets
+     `error=login_required` back instead of a login page.
 3. **OIDC Back-Channel Logout 1.0.**
    - `oauth_clients.backchannel_logout_uri`, set with `nexo:sso-client --backchannel=` or
      `nexo:sso-client:update <client_id> --backchannel= [--add-redirect=]` (idempotent, prints the final state).
@@ -54,10 +56,16 @@
    - **Delivery** (`BackchannelLogoutDispatcher`): `POST` form-encoded `logout_token=…` to every client that had a
      code in the ended sid and registered a URI. One inline attempt per client, **all in parallel** with a 2 s
      timeout, so the person waits ~2 s at worst however many tools there are. With more than 10 deliveries in one
-     event, everything goes straight to the queue. A transient failure (no connection, timeout, 5xx, 408/429) is
-     queued (`DeliverBackchannelLogout`): first retry after 1 min, then 5, 15, 60 min and hourly, until 24 h after
-     the logout, each attempt with a fresh token. A definitive refusal (any other 4xx) is logged and dropped: retrying
-     cannot fix it, and the tool's 15-minute re-validation still closes that session.
+     event, everything goes straight to the queue. A transient failure (no connection, timeout, 5xx, 408/429, and
+     a redirect — redirects are never followed, so a 3xx is not mistaken for a delivery) is queued
+     (`DeliverBackchannelLogout`): first retry after 1 min, then 5, 15, 60 min and hourly, until 24 h after the
+     logout, each attempt with a fresh token. A definitive refusal (any other 4xx) is logged and dropped: retrying
+     cannot fix it, and the tool's 15-minute re-validation still closes that session. With the `sync` queue driver
+     there is no later to retry in (a "queued" retry would run inside the person's request and throw at it), so a
+     failed delivery is logged and dropped too; a failure to enqueue never fails the sign-out either.
+   - The `iss` of a logout_token is the id_token's: the request's scheme and host (the bridge's `issuedBy =
+     laravel`), or the fixed `openid.issuedBy` when one is configured. A queued retry carries the issuer resolved
+     at dispatch time.
    - Discovery announces `backchannel_logout_supported` and `backchannel_logout_session_supported`.
    - Kill-switch `NEXO_OIDC_BACKCHANNEL=false`: nothing is sent or queued and discovery stops announcing it; sids
      are still recorded and ended.
@@ -77,7 +85,8 @@
    A hint is valid when its signature verifies against our key (expiry is ignored — logout hints are routinely
    expired) and, if the browser has a session, its `sub` is that account: a genuine id_token of *another* account
    (an attacker's own) cannot sign the victim out without the confirmation either.
-   Ending a sid twice notifies once.
+   Ending a sid twice — or from two requests at once — notifies once (each sid is claimed with its own
+   "still open" update).
 5. **«Remember me» lasts 30 days** (`guards.web.remember` = 43 200 min, read by `AuthManager` in Laravel 13). The
    cookies issued under the old policy are cut **once**, by the data migration
    `2026_11_26_000003_cut_remember_tokens_issued_under_the_400_day_policy`, which runs in the deploy's
@@ -108,6 +117,9 @@
 - **`POST /logout` still rotates the remember token** (Laravel's `logout()`), so other devices of the account lose
   their «remember me» cookie (not their open session). Kept on purpose: it is the framework's safe default and it
   only costs those devices a password after their session expires.
+- **`prompt=login`** (no Nexo tool sends it) makes Passport sign the browser out and back in without going through
+  `IdpSessions`: the old sid stays open until it is pruned and its tools are not told. Their 15-minute
+  re-validation adopts the new sid (same `sub`) or closes them (another `sub`).
 - **Refresh tokens** produce id_tokens without `sid` (there is no code to read it from). The tools never refresh:
   they re-authorize.
 - **Standalone and self-hosts:** nothing changes for a deployment with no clients registered with a URI; the
