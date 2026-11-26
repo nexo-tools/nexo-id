@@ -8,7 +8,7 @@ Laravel 13 + MySQL, local dev via Sail (mysql + mailpit). Blade + Tailwind v4 (V
 
 ## Request pipeline
 
-`bootstrap/app.php` appends two web middlewares: `SetLocale` (locale from `?lang` → session → `Accept-Language`, restricted to en/es/pt) then `SecurityHeaders` (self-contained CSP + headers, HSTS only over https).
+`bootstrap/app.php` appends to the web group, in order: `SetLocale` (locale from `?lang` → the shared `nexo-lang` cookie → `Accept-Language`, restricted to en/es/pt), `SecurityHeaders` (self-contained CSP + headers, HSTS only over https), `NexoNoStore` + `NoStoreForSensitiveResponses` (no-store), `EnsureIdpSessionActive` (ADR-010), then the two session-reading checks of `/oauth/authorize`: `RequireVerifiedForAuthorize` and `SignUpOnPromptCreate` (see «SSO provider»).
 
 ## Domain model
 
@@ -20,7 +20,7 @@ Laravel 13 + MySQL, local dev via Sail (mysql + mailpit). Blade + Tailwind v4 (V
 
 | Area | Routes | Controllers | ACs |
 |---|---|---|---|
-| Registration | `GET/POST register` (guest, throttle 10/min) | `Auth/RegisteredUserController` + `RegisterRequest` | AC-REG-* |
+| Registration | `GET/POST register` (guest, throttle 10/min); reached from a tool by `prompt=create` (names the tool, «Para entrar a …») | `Auth/RegisteredUserController` + `RegisterRequest`, `App\Auth\SignUpDestination` | AC-REG-*, AC-CREATE-* |
 | Email verification | `GET verify-email`, signed `GET verify-email/{id}/{hash}`, `POST email/verification-notification` (throttle 6/min) | `Auth/EmailVerificationPromptController`, `VerifyEmailController`, `EmailVerificationNotificationController` | AC-VERIFY-* |
 | Login / logout | `GET/POST login` (guest), `POST logout` (with or without a session), `POST logout/everywhere` (auth), `GET signed-out` («Cerraste sesión en todo Nexo»; signed in → `/profile`) | `Auth/AuthenticatedSessionController` + `LoginRequest` (per-credential RateLimiter); `SessionController@destroyAll`; a `419` on a sign-out form → `App\Http\ExpiredSignOut` (redirect to the confirmation) | AC-LOGIN-*, AC-BCL-P3 |
 | Password recovery | `GET/POST forgot-password`, `GET reset-password/{token}`, `POST reset-password` (throttle 5/min) | `Auth/PasswordResetLinkController`, `NewPasswordController` | AC-PWD-* |
@@ -45,7 +45,9 @@ Laravel Passport 13 + `jeremy379/laravel-openid-connect` ([ADR-008](adr/ADR-008-
 - **Keys:** RSA keypair in `storage/oauth-*.key` (gitignored; generated per environment via `passport:keys`).
 - **Clients:** `App\Models\OauthClient` overrides `skipsAuthorization()` → first-party (owner-less) clients are consent-free (silent SSO). Registered via the `nexo:sso-client` artisan command (public/PKCE, exact redirect URIs).
 - **Consent screen:** a functional consent view (`resources/views/auth/oauth/authorize.blade.php`, registered via `Passport::authorizationView`) lists requested scopes and is shown to any client that does *not* skip authorization; first-party clients bypass it.
-- **Verified gate:** `config/passport.php` registers `RequireVerifiedForAuthorize` on Passport routes; it redirects unverified users away from `/oauth/authorize` only (pass-through elsewhere).
+- **Verified gate:** `RequireVerifiedForAuthorize` redirects unverified users away from `/oauth/authorize` only (pass-through elsewhere). It is appended to the **`web` group** (`bootstrap/app.php`, after `EnsureIdpSessionActive`), not to `config('passport.middleware')`: Passport's route middleware runs *before* the web group, with the session not started, so from there it read no user and — until 2026-11-26 — unverified accounts got codes (the tests' `actingAs()` hid it; `AuthorizationTest` now pins the effective order). Only session-free checks stay in `config/passport.php` (`ThrottleAuthorizeByIp`, `EnforcePkceS256`, `NoStoreForSensitiveResponses`).
+- **`prompt=create` (v2.2, «alta que vuelve a la tool»):** `SignUpOnPromptCreate` (web group, after the verified gate) turns Passport's «sign in first» redirect for a guest into `/register`, with the authorize URL minus `create` as `url.intended`; registration → email verification (`VerifyEmailController` already returns to the intended URL) → the authorize resumes → code. With a session `create` is ignored, `none` wins. `App\Auth\SignUpDestination` names the tool on the sign-up screen only for a genuine intended authorize URL (same origin, registered non-revoked client with that exact redirect_uri), using `ConnectedTools::describe()`. Discovery advertises `prompt_values_supported` (`none login consent create`).
+- **end_session confirmation:** «Mantener la sesión abierta» goes to the tool's `url + entry` when the request's `client_id` is a tool of `config/nexo-ecosystem.php` (`ConnectedTools::describe()`, non-revoked), else `/profile`.
 - **Claims:** `App\Entities\IdentityEntity` maps scopes→claims (`profile`→name, `email`→email/email_verified); the bridge filters by granted scope. Scopes declared via `Passport::tokensCan(config('openid.passport.tokens_can'))` in `AuthServiceProvider`.
 - **User:** `HasApiTokens` + `OAuthenticatable`; the `api` guard (driver `passport`) protects userinfo.
 - **Integration guide:** [INTEGRATION.md](INTEGRATION.md).

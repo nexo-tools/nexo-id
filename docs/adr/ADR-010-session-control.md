@@ -134,3 +134,34 @@
    `php artisan nexo:sso-client:update <client_id> --backchannel=https://<tool>/auth/nexo/backchannel-logout
    --add-redirect=https://<tool>/auth/nexo/signed-out`.
 3. Verify with the session journeys (Chromium and WebKit) in production with the test account.
+
+## v2.2 additions (2026-11-26, experiencia unificada F3 tanda 3)
+
+1. **Sign-up that returns to the tool: `prompt=create`** ([Initiating User Registration via OpenID Connect
+   1.0](https://openid.net/specs/openid-connect-prompt-create-1_0.html)). A tool's «Crear cuenta» goes to its
+   `/auth/nexo/enter?to=<home>&signup=1`, which adds `prompt=create` to the interactive authorize.
+   - Guest: `SignUpOnPromptCreate` turns Passport's «sign in first» redirect into `/register`, with the authorize
+     URL **without** `create` as `url.intended`. It never decides on its own: Passport only gives that redirect
+     after validating the client, the redirect_uri and the rest of the request, so an invalid request keeps
+     Passport's error — no sign-up screen naming a tool, no redirect. Registration → verification of the email
+     in the same browser (`VerifyEmailController` returns to the intended URL) → the authorize resumes with a
+     session → the code.
+   - The sign-up screen names the tool («Para entrar a Nexo Links») only when the intended URL is this server's
+     authorize with a registered, non-revoked client and exactly that redirect_uri (`App\Auth\SignUpDestination`),
+     with the name «Herramientas conectadas» uses (`ConnectedTools::describe()`). «Crear cuenta» from the login of
+     a plain authorize request keeps the intended URL and names the tool too.
+   - With a session, `create` is ignored; `prompt=none` wins over it; `prompt=login create` with a session is
+     `prompt=login`. Discovery advertises `prompt_values_supported: [none, login, consent, create]`.
+   - An instance without this degrades well: the person lands on its login, whose «Crear cuenta» keeps the
+     intended URL.
+2. **The verified-email gate moved to the `web` group.** `RequireVerifiedForAuthorize` lived in
+   `config('passport.middleware')`, which runs **before** the authorize route's `web` group: the session was not
+   started there, so it saw every browser as a guest and unverified accounts got codes (the tests' `actingAs()`
+   hid it; verified against a real server on 2026-11-26). It is now appended to the web group after
+   `EnsureIdpSessionActive`, with `SignUpOnPromptCreate` after it, and `AuthorizationTest` pins the effective order.
+   The tools were never exposed to a takeover by it — the template links by email only when `email_verified` is
+   true — but an unverified Nexo ID account could open accounts in them.
+3. **«Mantener la sesión abierta»** on the «¿Cerrar sesión en todo Nexo?» confirmation goes back into the tool
+   that asked — its `url + entry` from the registry, which signs in again with zero clicks — when the request's
+   `client_id` is a non-revoked client of a registry tool; otherwise to `/profile`. The tool's local session has
+   already ended by then, so sending the person to Nexo ID's account left them outside the tool.

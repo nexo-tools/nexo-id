@@ -10,7 +10,7 @@ Every instance publishes an OIDC discovery document:
 GET https://<nexoid-host>/.well-known/openid-configuration
 ```
 
-It returns `issuer`, `authorization_endpoint`, `token_endpoint`, `userinfo_endpoint`, `jwks_uri` and `end_session_endpoint`, plus `backchannel_logout_supported` / `backchannel_logout_session_supported` when the instance sends back-channel logouts (see §7). Read these at runtime rather than hard-coding paths — a self-hosted instance may differ.
+It returns `issuer`, `authorization_endpoint`, `token_endpoint`, `userinfo_endpoint`, `jwks_uri` and `end_session_endpoint`, plus `backchannel_logout_supported` / `backchannel_logout_session_supported` when the instance sends back-channel logouts (see §7) and `prompt_values_supported` (`none`, `login`, `consent`, `create` — see §3). Read these at runtime rather than hard-coding paths — a self-hosted instance may differ.
 
 ## 2. Register your client
 
@@ -48,6 +48,18 @@ GET {authorization_endpoint}?
 - First-party clients are **consent-free**: if the user has an active, verified Nexo ID session they are redirected straight back with a `code` (silent SSO). Otherwise they log in (or verify their email) first, then return.
 - Non-first-party clients are shown a **consent screen** listing the requested scopes before any `code` is issued (the screen exists today; broader third-party onboarding/polish is a later phase).
 - Always send and check `state` (CSRF protection).
+- **`prompt`** (space-delimited) — `none`: never show anything; a guest comes back with `error=login_required`, an
+  unverified account with `error=interaction_required` (silent SSO and the tools' 15-minute re-validation).
+  `login`: ask for the password again. `consent`: show the consent screen even to a first-party client.
+  **`create`** ([Initiating User Registration via OpenID Connect 1.0](https://openid.net/specs/openid-connect-prompt-create-1_0.html)):
+  your «Create account». A guest lands on Nexo ID's sign-up screen, which names your tool («Para entrar a <tool>»:
+  the registry's name for a Nexo tool, the client's name otherwise — only when `client_id` and `redirect_uri` are
+  valid, registered and the client is not revoked). After verifying the email **in the same browser** the
+  authorization request resumes (without `create`, so it is not asked twice) and your callback gets its `code`.
+  With a session, `create` is ignored (straight to the code); `none` wins over `create`. An instance that does not
+  understand `create` shows its login, whose «Crear cuenta» keeps the request too — it degrades to one extra click.
+- The verified email is a hard gate: no `code` is issued to an account whose email is not verified yet (the person
+  is sent to verify it first; with `prompt=none`, `interaction_required`).
 
 The callback receives `?code=…&state=…`.
 
@@ -115,7 +127,11 @@ able to sign someone out of everything. A tool whose own session already expired
 says who it is instead — `client_id={your client_id}` plus `post_logout_redirect_uri` (and `state`). Nexo ID honours
 that URI only when it is one of **that** client's registered redirect URIs: after the confirmation when the browser
 still has a Nexo ID session, at once when it has none. Any other URI, or none, ends on Nexo ID's own "signed out"
-page. With a hint and a `client_id`, the `client_id` must be one of the hint's audiences. Your CSP must allow the issuer in `form-action`, since
+page. With a hint and a `client_id`, the `client_id` must be one of the hint's audiences. On the confirmation,
+«Mantener la sesión abierta» (keep me signed in) takes the person back into your tool when your `client_id` belongs
+to a tool of the ecosystem registry (`config/nexo-ecosystem.php`, matched by the origin of your redirect URIs): to
+its `url + entry` — `/auth/nexo/enter`, which signs in again through Nexo ID with zero clicks. Any other client, or
+no `client_id`, goes to the Nexo ID account. Your CSP must allow the issuer in `form-action`, since
 your logout form's redirect goes there.
 
 **Back-channel (Nexo ID tells you).** Register a `backchannel_logout_uri` (§2). When a Nexo ID session in which
